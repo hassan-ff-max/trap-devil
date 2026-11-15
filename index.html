@@ -1,0 +1,3433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>TRAP DEVIL — Every Step Is A Surprise!</title>
+  <style>
+    /* ==========================================================================
+       1. RETRO PIXEL FONT & CORE RESET
+       ========================================================================== */
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: manipulation;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0d0508;
+      font-family: 'Press Start 2P', monospace;
+      color: #fff5e4;
+    }
+
+    #game-wrapper {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, #1e0911 0%, #090305 100%);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    /* ==========================================================================
+       2. DARK RED + GOLDEN BORDER RETRO PIXEL UI THEME
+       ========================================================================== */
+    .pixel-panel {
+      background: linear-gradient(180deg, #4a0b15 0%, #2a040a 100%);
+      border: 4px solid #f5b921;
+      box-shadow:
+        0 0 0 4px #180205,
+        inset 0 0 0 3px #8c1927,
+        0 10px 25px rgba(0, 0, 0, 0.85);
+      border-radius: 6px;
+    }
+
+    .pixel-btn {
+      font-family: 'Press Start 2P', monospace;
+      background: linear-gradient(180deg, #6e1220 0%, #3b0710 100%);
+      color: #fff6e5;
+      border: 3px solid #f5b921;
+      box-shadow: 0 4px 0 #1a0206, inset 0 2px 0 rgba(255, 220, 120, 0.25);
+      padding: 10px 14px;
+      font-size: clamp(10px, 1.8vw, 14px);
+      cursor: pointer;
+      text-align: center;
+      text-shadow: 2px 2px 0 #180205;
+      transition: transform 0.06s ease, filter 0.1s ease;
+      border-radius: 4px;
+    }
+
+    .pixel-btn:hover {
+      filter: brightness(1.18);
+    }
+
+    .pixel-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #1a0206;
+    }
+
+    .pixel-btn.highlight {
+      background: linear-gradient(180deg, #ffd43b 0%, #e08e00 100%);
+      color: #240408;
+      border-color: #fff3b0;
+      text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
+      animation: pulseGlow 1.5s infinite alternate;
+    }
+
+    .pixel-btn.disabled {
+      background: #2b2325;
+      border-color: #6b5e62;
+      color: #8f8286;
+      cursor: not-allowed;
+      box-shadow: 0 3px 0 #120e0f;
+    }
+
+    @keyframes pulseGlow {
+      from { box-shadow: 0 4px 0 #5e3900, 0 0 8px rgba(255, 212, 59, 0.4); }
+      to   { box-shadow: 0 4px 0 #5e3900, 0 0 18px rgba(255, 212, 59, 0.9); }
+    }
+
+    /* Overlay Screens */
+    .overlay-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: clamp(8px, 2vh, 18px) clamp(12px, 3vw, 28px);
+      z-index: 20;
+      pointer-events: auto;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Main Menu Top Banner */
+    .menu-banner {
+      align-self: center;
+      text-align: center;
+      padding: clamp(8px, 1.5vh, 14px) clamp(18px, 4vw, 40px);
+      background: linear-gradient(180deg, #590c18 0%, #2c040b 100%);
+      border: 4px solid #f5b921;
+      box-shadow: 0 0 0 3px #140104, 0 6px 18px rgba(0, 0, 0, 0.8);
+      border-radius: 6px;
+    }
+
+    .game-logo {
+      font-size: clamp(20px, 4.4vw, 42px);
+      letter-spacing: 3px;
+      background: linear-gradient(180deg, #ffffff 0%, #ffe885 45%, #ff3b1f 75%, #b30000 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(3px 3px 0 #1f0205) drop-shadow(0 0 10px rgba(255, 60, 20, 0.65));
+      margin-bottom: 6px;
+    }
+
+    .game-tagline {
+      font-size: clamp(8px, 1.4vw, 13px);
+      color: #ffd43b;
+      text-shadow: 2px 2px 0 #1a0206;
+    }
+
+    /* Main Menu Middle Split */
+    .menu-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 6px 4%;
+      min-height: 0;
+    }
+
+    .hero-showcase {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+
+    #menu-hero-canvas {
+      width: clamp(120px, 22vw, 220px);
+      height: clamp(140px, 34vh, 240px);
+      image-rendering: pixelated;
+    }
+
+    .menu-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(6px, 1.3vh, 11px);
+      width: clamp(210px, 32vw, 310px);
+    }
+
+    .menu-buttons .pixel-btn {
+      width: 100%;
+      padding: clamp(8px, 1.4vh, 12px) 12px;
+      font-size: clamp(9px, 1.5vw, 13px);
+    }
+
+    /* Main Menu Bottom Footer */
+    .menu-footer {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: clamp(7px, 1.15vw, 10px);
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    .footer-stats {
+      color: #ffd43b;
+      background: rgba(24, 3, 7, 0.85);
+      border: 2px solid #f5b921;
+      padding: 6px 10px;
+      border-radius: 4px;
+    }
+
+    .footer-credits {
+      text-align: center;
+      color: #f3d9dc;
+      line-height: 1.6;
+    }
+
+    .footer-credits span {
+      color: #f5b921;
+    }
+
+    .footer-icons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      font-family: 'Press Start 2P', monospace;
+      background: #420812;
+      color: #ffd43b;
+      border: 2px solid #f5b921;
+      padding: 7px 9px;
+      font-size: clamp(8px, 1.2vw, 11px);
+      cursor: pointer;
+      border-radius: 4px;
+      box-shadow: 0 3px 0 #140104;
+    }
+
+    .icon-btn.off {
+      color: #887377;
+      border-color: #6e5a5e;
+      background: #221417;
+    }
+
+    /* Modal Dialogs (Level Select, Shop, Options, Pause, Level Complete, Quit) */
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(8, 2, 4, 0.84);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+      padding: 14px;
+    }
+
+    .modal-box {
+      width: min(92vw, 720px);
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      padding: clamp(14px, 2.5vw, 22px);
+      gap: 14px;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid #f5b921;
+      padding-bottom: 10px;
+    }
+
+    .modal-title {
+      font-size: clamp(13px, 2.2vw, 20px);
+      color: #ffd43b;
+      text-shadow: 2px 2px 0 #180205;
+    }
+
+    .modal-scroll {
+      overflow-y: auto;
+      padding-right: 6px;
+      flex: 1;
+    }
+
+    .modal-scroll::-webkit-scrollbar {
+      width: 8px;
+    }
+    .modal-scroll::-webkit-scrollbar-thumb {
+      background: #f5b921;
+      border-radius: 4px;
+    }
+
+    /* 2-Column Level Select Grid */
+    .level-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .level-card {
+      background: linear-gradient(180deg, #590d19 0%, #2d050b 100%);
+      border: 3px solid #f5b921;
+      border-radius: 5px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      text-align: left;
+      transition: transform 0.08s;
+    }
+
+    .level-card:hover:not(.locked) {
+      filter: brightness(1.2);
+      transform: scale(1.01);
+    }
+
+    .level-card.locked {
+      background: #262123;
+      border-color: #5c5356;
+      color: #8c8285;
+      cursor: not-allowed;
+    }
+
+    .level-card-name {
+      font-size: clamp(8px, 1.3vw, 11px);
+      line-height: 1.5;
+    }
+
+    .level-card-stars {
+      font-size: clamp(10px, 1.5vw, 14px);
+      color: #ffd43b;
+      white-space: nowrap;
+      margin-left: 8px;
+    }
+
+    /* Shop Skins Grid */
+    .shop-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .skin-card {
+      background: #23060b;
+      border: 3px solid #8c5c19;
+      border-radius: 6px;
+      padding: 14px 10px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-soon {
+      background: #f5b921;
+      color: #240408;
+      font-size: 8px;
+      padding: 5px 8px;
+      border-radius: 3px;
+    }
+
+    /* Options Sliders & About Text */
+    .option-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      font-size: clamp(9px, 1.4vw, 12px);
+    }
+
+    input[type="range"] {
+      accent-color: #ffd43b;
+      width: 160px;
+      height: 10px;
+      cursor: pointer;
+    }
+
+    .about-box {
+      background: #1b0307;
+      border: 2px solid #8c1927;
+      padding: 12px;
+      border-radius: 5px;
+      font-size: clamp(8px, 1.2vw, 10px);
+      line-height: 1.75;
+      color: #f4dfe2;
+    }
+
+    .about-box h4 {
+      color: #ffd43b;
+      margin: 8px 0 4px;
+    }
+
+    /* ==========================================================================
+       3. IN-GAME HUD & MOBILE TOUCH CONTROLS
+       ========================================================================== */
+    #hud-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    .hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 10px 14px;
+    }
+
+    .hud-stats {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      background: rgba(28, 4, 9, 0.82);
+      border: 3px solid #f5b921;
+      padding: 7px 12px;
+      border-radius: 6px;
+      box-shadow: 0 4px 0 #120103;
+      font-size: clamp(9px, 1.5vw, 13px);
+    }
+
+    .hearts-container {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .hud-pill {
+      color: #ffd43b;
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    .hud-deaths {
+      color: #ff6b6b;
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    #btn-pause {
+      pointer-events: auto;
+      padding: 9px 13px;
+      font-size: clamp(11px, 1.8vw, 15px);
+    }
+
+    /* Mobile Touch Controls */
+    #touch-controls {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 16;
+    }
+
+    .touch-cluster-left {
+      position: absolute;
+      bottom: 18px;
+      left: 18px;
+      display: flex;
+      gap: 14px;
+      pointer-events: auto;
+    }
+
+    .touch-cluster-right {
+      position: absolute;
+      bottom: 18px;
+      right: 22px;
+      pointer-events: auto;
+    }
+
+    .touch-btn {
+      width: var(--touch-size, 68px);
+      height: var(--touch-size, 68px);
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, rgba(110, 18, 32, 0.72), rgba(38, 4, 10, 0.82));
+      border: 4px solid rgba(245, 185, 33, 0.85);
+      box-shadow: 0 5px 0 rgba(15, 2, 4, 0.8), inset 0 0 12px rgba(255, 212, 59, 0.25);
+      color: #ffd43b;
+      font-family: 'Press Start 2P', monospace;
+      font-size: calc(var(--touch-size, 68px) * 0.34);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-shadow: 2px 2px 0 #000;
+      transition: transform 0.05s, background 0.05s;
+    }
+
+    .touch-btn.jump-btn {
+      width: calc(var(--touch-size, 68px) * 1.18);
+      height: calc(var(--touch-size, 68px) * 1.18);
+      font-size: calc(var(--touch-size, 68px) * 0.21);
+      background: radial-gradient(circle at 35% 35%, rgba(212, 130, 10, 0.78), rgba(92, 14, 22, 0.85));
+    }
+
+    .touch-btn.pressed {
+      transform: scale(0.92) translateY(3px);
+      background: rgba(245, 185, 33, 0.65);
+      color: #1f0306;
+    }
+
+    /* Portrait Orientation Warning for Mobile */
+    #portrait-warning {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #140205;
+      z-index: 999;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      gap: 16px;
+      border: 6px solid #f5b921;
+    }
+
+    @media screen and (orientation: portrait) and (max-width: 768px) {
+      #portrait-warning {
+        display: flex;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="game-wrapper">
+    <!-- Main 16-Bit Pixel Game Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Portrait Orientation Helper -->
+    <div id="portrait-warning">
+      <div style="font-size: 42px;">📱🔄</div>
+      <div style="color: #ffd43b; font-size: 16px; line-height: 1.6;">ROTATE DEVICE TO LANDSCAPE</div>
+      <div style="color: #f3d9dc; font-size: 10px; line-height: 1.7;">TRAP DEVIL is engineered for landscape arcade action!</div>
+    </div>
+
+    <!-- ======================================================================
+         IN-GAME HUD & MOBILE TOUCH CONTROLS
+         ====================================================================== -->
+    <div id="hud-layer" class="hidden">
+      <div class="hud-top">
+        <div class="hud-stats">
+          <div class="hearts-container" id="hud-hearts"></div>
+          <div class="hud-pill" id="hud-coins">🪙 0 / 25</div>
+          <div class="hud-deaths" id="hud-deaths">DEATHS: 0</div>
+          <div class="hud-pill" style="color:#fff;" id="hud-level">LVL 1</div>
+        </div>
+        <button id="btn-pause" class="pixel-btn" aria-label="Pause">II</button>
+      </div>
+
+      <div id="touch-controls">
+        <div class="touch-cluster-left" id="dpad-zone">
+          <div class="touch-btn" id="btn-left">&lt;</div>
+          <div class="touch-btn" id="btn-right">&gt;</div>
+        </div>
+        <div class="touch-cluster-right">
+          <div class="touch-btn jump-btn" id="btn-jump">JUMP</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         MAIN MENU SCREEN
+         ====================================================================== -->
+    <div id="main-menu" class="overlay-screen">
+      <!-- Top Fiery Banner -->
+      <div class="menu-banner">
+        <div class="game-logo">TRAP DEVIL</div>
+        <div class="game-tagline">Every Step Is A Surprise!</div>
+      </div>
+
+      <!-- Center Split: Hero Character on Left, Vertical Menu on Right -->
+      <div class="menu-body">
+        <div class="hero-showcase">
+          <canvas id="menu-hero-canvas" width="96" height="112"></canvas>
+        </div>
+
+        <div class="menu-buttons">
+          <button id="menu-play" class="pixel-btn highlight">PLAY</button>
+          <button id="menu-new" class="pixel-btn">NEW GAME</button>
+          <button id="menu-levels" class="pixel-btn">LEVELS</button>
+          <button id="menu-shop" class="pixel-btn">SHOP (COMING SOON)</button>
+          <button id="menu-options" class="pixel-btn">OPTIONS</button>
+          <button id="menu-quit" class="pixel-btn">QUIT</button>
+        </div>
+      </div>
+
+      <!-- Bottom Status, Studio Credits & Audio Toggles -->
+      <div class="menu-footer">
+        <div class="footer-stats" id="menu-stats-text">LEVEL: 1/21 &nbsp;DEATHS: 0</div>
+        <div class="footer-credits">
+          Developed By <span>HASSAN X HACKER 005</span><br />
+          &copy; 2026 HASSAN X HACKER 005. All Rights Reserved.
+        </div>
+        <div class="footer-icons">
+          <button id="toggle-music" class="icon-btn" title="Toggle Music">🎵 ON</button>
+          <button id="toggle-sfx" class="icon-btn" title="Toggle Sound">🔊 ON</button>
+          <button id="footer-settings" class="icon-btn" title="Settings">⚙️</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         MODAL OVERLAYS (LEVELS, SHOP, OPTIONS, PAUSE, LEVEL COMPLETE, CONFIRM)
+         ====================================================================== -->
+    <div id="modal-backdrop" class="modal-backdrop hidden">
+      <!-- 1. LEVEL SELECT MODAL -->
+      <div id="modal-levels" class="pixel-panel modal-box hidden">
+        <div class="modal-header">
+          <div class="modal-title">SELECT LEVEL (21 STAGES)</div>
+          <button class="pixel-btn close-modal">X</button>
+        </div>
+        <div class="modal-scroll">
+          <div class="level-grid" id="level-grid-container"></div>
+        </div>
+      </div>
+
+      <!-- 2. SHOP (COMING SOON) MODAL -->
+      <div id="modal-shop" class="pixel-panel modal-box hidden">
+        <div class="modal-header">
+          <div class="modal-title">HERO ARMORY &amp; SKINS</div>
+          <button class="pixel-btn close-modal">X</button>
+        </div>
+        <div class="modal-scroll">
+          <p style="font-size:10px; color:#ffd43b; margin-bottom:12px; line-height:1.6;">
+            Unlock legendary outfits in upcoming updates from HASSAN X HACKER 005!
+          </p>
+          <div class="shop-grid">
+            <div class="skin-card">
+              <div style="font-size:28px;">🧣</div>
+              <div style="font-size:10px; color:#fff;">RED SCARF HERO</div>
+              <div class="badge-soon" style="background:#4ade80;">EQUIPPED</div>
+            </div>
+            <div class="skin-card">
+              <div style="font-size:28px;">🥷</div>
+              <div style="font-size:10px; color:#aaa;">SHADOW NINJA</div>
+              <div class="badge-soon">COMING SOON</div>
+            </div>
+            <div class="skin-card">
+              <div style="font-size:28px;">👑</div>
+              <div style="font-size:10px; color:#aaa;">GOLDEN KNIGHT</div>
+              <div class="badge-soon">COMING SOON</div>
+            </div>
+            <div class="skin-card">
+              <div style="font-size:28px;">😈</div>
+              <div style="font-size:10px; color:#aaa;">CYBER DEVIL</div>
+              <div class="badge-soon">COMING SOON</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. OPTIONS & PLAY STORE ABOUT MODAL -->
+      <div id="modal-options" class="pixel-panel modal-box hidden">
+        <div class="modal-header">
+          <div class="modal-title">OPTIONS &amp; ABOUT</div>
+          <button class="pixel-btn close-modal">X</button>
+        </div>
+        <div class="modal-scroll">
+          <div class="option-row">
+            <span>MUSIC VOLUME</span>
+            <input type="range" id="opt-music-vol" min="0" max="100" value="60" />
+          </div>
+          <div class="option-row">
+            <span>SFX VOLUME</span>
+            <input type="range" id="opt-sfx-vol" min="0" max="100" value="80" />
+          </div>
+          <div class="option-row">
+            <span>CONTROLS SIZE</span>
+            <input type="range" id="opt-ctrl-size" min="52" max="88" value="68" />
+          </div>
+
+          <div class="about-box">
+            <h4>About TRAP DEVIL:</h4>
+            <p>
+              TRAP DEVIL is a challenging platformer game where every level tests your timing, patience, and skills. Watch out for unexpected traps, overcome dangerous obstacles, and prove that you have what it takes to complete all 21 levels!
+            </p>
+            <h4>What's Next?</h4>
+            <p>
+              This is just the beginning! HASSAN X HACKER 005 is working towards bringing more exciting levels, challenging boss battles, and new gameplay experiences in upcoming updates.
+            </p>
+            <p style="color:#ffd43b; margin-top:8px;">Can you survive all 21 levels?</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. PAUSE MODAL -->
+      <div id="modal-pause" class="pixel-panel modal-box hidden" style="max-width:420px; text-align:center;">
+        <div class="modal-header">
+          <div class="modal-title">GAME PAUSED</div>
+        </div>
+        <button id="pause-resume" class="pixel-btn highlight">RESUME</button>
+        <button id="pause-restart" class="pixel-btn">RESTART LEVEL</button>
+        <button id="pause-options" class="pixel-btn">OPTIONS</button>
+        <button id="pause-menu" class="pixel-btn">MAIN MENU</button>
+      </div>
+
+      <!-- 5. LEVEL COMPLETE MODAL -->
+      <div id="modal-complete" class="pixel-panel modal-box hidden" style="max-width:480px; text-align:center;">
+        <div class="modal-header" style="justify-content:center;">
+          <div class="modal-title" id="complete-title">LEVEL 1 CLEARED!</div>
+        </div>
+        <div id="complete-stars" style="font-size:28px; color:#ffd43b; letter-spacing:8px; margin:6px 0;">★★★</div>
+        <div id="complete-stats" style="font-size:11px; line-height:2; color:#fff;">
+          COINS: 25 / 25<br />
+          DEATHS: 0
+        </div>
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:8px;">
+          <button id="complete-next" class="pixel-btn highlight">NEXT</button>
+          <button id="complete-replay" class="pixel-btn">REPLAY</button>
+          <button id="complete-menu" class="pixel-btn">MENU</button>
+        </div>
+      </div>
+
+      <!-- 6. NEW GAME / QUIT CONFIRMATION MODAL -->
+      <div id="modal-confirm" class="pixel-panel modal-box hidden" style="max-width:440px; text-align:center;">
+        <div class="modal-header" style="justify-content:center;">
+          <div class="modal-title" id="confirm-title">ARE YOU SURE?</div>
+        </div>
+        <p id="confirm-msg" style="font-size:10px; line-height:1.8; color:#f3d9dc;"></p>
+        <div style="display:flex; gap:12px; justify-content:center; margin-top:8px;">
+          <button id="confirm-yes" class="pixel-btn highlight">YES</button>
+          <button id="confirm-no" class="pixel-btn close-modal">CANCEL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * ============================================================================
+     * TRAP DEVIL — 16-BIT RETRO PIXEL PLATFORMER ENGINE
+     * Developer: HASSAN X HACKER 005
+     * Architecture:
+     *  1. SaveManager (LocalStorage persistence for unlocked levels, stars, deaths)
+     *  2. RetroAudio (Web Audio API 8-bit chiptune music + synthesized SFX)
+     *  3. PixelRenderer (100% procedural pixel-art sprites, tiles, parallax & FX)
+     *  4. LevelFactory (All 21 unique, progressively harder levels + editable builder)
+     *  5. GameEngine (60 FPS fixed-timestep physics, coyote time, traps & camera)
+     * ============================================================================
+     */
+
+    /* ==========================================================================
+       1. SAVE MANAGER & GLOBAL STATE
+       ========================================================================== */
+    const STORAGE_KEY = 'trap_devil_deccan_save_v1';
+
+    const DefaultSave = {
+      unlockedLevel: 1,
+      totalDeaths: 0,
+      totalCoins: 0,
+      levelStars: {}, // { 1: 3, 2: 2, ... }
+      settings: {
+        musicOn: true,
+        sfxOn: true,
+        musicVol: 0.55,
+        sfxVol: 0.8,
+        ctrlSize: 68
+      }
+    };
+
+    let SaveData = loadSave();
+
+    function loadSave() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return JSON.parse(JSON.stringify(DefaultSave));
+        const parsed = JSON.parse(raw);
+        return {
+          ...JSON.parse(JSON.stringify(DefaultSave)),
+          ...parsed,
+          settings: { ...DefaultSave.settings, ...(parsed.settings || {}) }
+        };
+      } catch (e) {
+        return JSON.parse(JSON.stringify(DefaultSave));
+      }
+    }
+
+    function writeSave() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(SaveData));
+      } catch (e) {
+        // Ignore storage quota errors in restricted sandboxes
+      }
+      updateMenuFooterUI();
+    }
+
+    /* ==========================================================================
+       2. RETRO 8-BIT AUDIO SYNTHESIZER (WEB AUDIO API — ZERO EXTERNAL FILES)
+       ========================================================================== */
+    class RetroAudio {
+      constructor() {
+        this.ctx = null;
+        this.bgmTimer = null;
+        this.noteIndex = 0;
+        // Catchy dark-adventure 8-bit melody (frequencies in Hz, 0 = rest)
+        this.melody = [
+          330, 0, 330, 392, 440, 0, 392, 330,
+          294, 0, 294, 330, 392, 0, 330, 0,
+          330, 0, 330, 440, 494, 0, 523, 494,
+          440, 392, 330, 294, 330, 0, 0, 0
+        ];
+        this.bass = [
+          110, 110, 165, 110, 147, 147, 196, 147,
+          98,  98,  147, 98,  131, 131, 165, 131
+        ];
+      }
+
+      unlock() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+        if (SaveData.settings.musicOn && !this.bgmTimer) {
+          this.startMusic();
+        }
+      }
+
+      playTone(freq, duration, type = 'square', gainVal = 0.15, slideTo = null) {
+        if (!this.ctx || !SaveData.settings.sfxOn) return;
+        const vol = gainVal * SaveData.settings.sfxVol;
+        if (vol <= 0.001) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        if (slideTo) {
+          osc.frequency.exponentialRampToValueAtTime(Math.max(20, slideTo), now + duration);
+        }
+
+        gain.gain.setValueAtTime(vol, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + duration);
+      }
+
+      sfxJump() {
+        this.playTone(210, 0.16, 'square', 0.16, 560);
+      }
+
+      sfxCoin() {
+        this.playTone(987, 0.07, 'square', 0.14);
+        setTimeout(() => this.playTone(1318, 0.14, 'square', 0.14), 60);
+      }
+
+      sfxGem() {
+        this.playTone(784, 0.07, 'triangle', 0.2);
+        setTimeout(() => this.playTone(1046, 0.08, 'triangle', 0.2), 60);
+        setTimeout(() => this.playTone(1568, 0.18, 'triangle', 0.22), 120);
+      }
+
+      sfxCheckpoint() {
+        this.playTone(440, 0.09, 'square', 0.16);
+        setTimeout(() => this.playTone(554, 0.09, 'square', 0.16), 80);
+        setTimeout(() => this.playTone(659, 0.2, 'square', 0.18), 160);
+      }
+
+      sfxTrap() {
+        this.playTone(160, 0.12, 'sawtooth', 0.18, 90);
+      }
+
+      sfxHurt() {
+        this.playTone(260, 0.22, 'sawtooth', 0.22, 65);
+      }
+
+      sfxDeath() {
+        this.playTone(320, 0.12, 'sawtooth', 0.24, 200);
+        setTimeout(() => this.playTone(210, 0.14, 'sawtooth', 0.24, 120), 110);
+        setTimeout(() => this.playTone(130, 0.28, 'sawtooth', 0.26, 45), 230);
+      }
+
+      sfxWin() {
+        const notes = [523, 659, 784, 1046, 784, 1046];
+        notes.forEach((n, i) => {
+          setTimeout(() => this.playTone(n, i === notes.length - 1 ? 0.35 : 0.11, 'square', 0.18), i * 110);
+        });
+      }
+
+      startMusic() {
+        if (this.bgmTimer) clearInterval(this.bgmTimer);
+        this.bgmTimer = setInterval(() => {
+          if (!this.ctx || !SaveData.settings.musicOn || SaveData.settings.musicVol <= 0.01) return;
+          if (this.ctx.state === 'suspended') return;
+
+          const now = this.ctx.currentTime;
+          const mFreq = this.melody[this.noteIndex % this.melody.length];
+          const bFreq = this.bass[this.noteIndex % this.bass.length];
+          const vol = 0.065 * SaveData.settings.musicVol;
+
+          if (mFreq > 0) {
+            const osc = this.ctx.createOscillator();
+            const g = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(mFreq, now);
+            g.gain.setValueAtTime(vol, now);
+            g.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+            osc.connect(g);
+            g.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.17);
+          }
+
+          if (bFreq > 0 && this.noteIndex % 2 === 0) {
+            const bOsc = this.ctx.createOscillator();
+            const bg = this.ctx.createGain();
+            bOsc.type = 'triangle';
+            bOsc.frequency.setValueAtTime(bFreq, now);
+            bg.gain.setValueAtTime(vol * 1.25, now);
+            bg.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+            bOsc.connect(bg);
+            bg.connect(this.ctx.destination);
+            bOsc.start(now);
+            bOsc.stop(now + 0.29);
+          }
+
+          this.noteIndex++;
+        }, 195);
+      }
+    }
+
+    const Sound = new RetroAudio();
+
+    /* ==========================================================================
+       3. PROCEDURAL PIXEL ART SPRITE & ENVIRONMENT RENDERER
+       ========================================================================== */
+    const THEMES = {
+      grass: {
+        skyTop: '#2c6ed5', skyMid: '#7cb5f8', skyBot: '#f7a8b8',
+        mountain: '#3b2854', trees: '#1f5e3b',
+        dirt: '#6e3f24', dirtDark: '#4d2915', grass: '#38b03c', grassLight: '#6ee052',
+        hazardLiquid: '#1e90ff'
+      },
+      sunset: {
+        skyTop: '#2b1347', skyMid: '#b83756', skyBot: '#ff9e44',
+        mountain: '#2c1138', trees: '#3d1c33',
+        dirt: '#613424', dirtDark: '#422014', grass: '#d97724', grassLight: '#f7b249',
+        hazardLiquid: '#ff5500'
+      },
+      cave: {
+        skyTop: '#0d0b1a', skyMid: '#1c1736', skyBot: '#2e2554',
+        mountain: '#17132b', trees: '#241e42',
+        dirt: '#3e3b52', dirtDark: '#262436', grass: '#676285', grassLight: '#8c87ab',
+        hazardLiquid: '#7c3aed'
+      },
+      night: {
+        skyTop: '#060c1f', skyMid: '#102147', skyBot: '#1f3b6e',
+        mountain: '#0b1630', trees: '#0f382d',
+        dirt: '#3d2c28', dirtDark: '#261a17', grass: '#1e7856', grassLight: '#34ad7e',
+        hazardLiquid: '#1d4ed8'
+      },
+      lava: {
+        skyTop: '#1a0406', skyMid: '#590d14', skyBot: '#c92a1d',
+        mountain: '#29070a', trees: '#3d0c11',
+        dirt: '#2b2226', dirtDark: '#171114', grass: '#991b1b', grassLight: '#ef4444',
+        hazardLiquid: '#ff4d00'
+      },
+      ice: {
+        skyTop: '#0c3559', skyMid: '#3898c7', skyBot: '#bceeff',
+        mountain: '#275980', trees: '#488fb8',
+        dirt: '#3b6e8c', dirtDark: '#254a61', grass: '#a5f3fc', grassLight: '#ffffff',
+        hazardLiquid: '#0284c7'
+      },
+      castle: {
+        skyTop: '#140205', skyMid: '#3d0710', skyBot: '#7a0c1c',
+        mountain: '#1f0408', trees: '#2e060c',
+        dirt: '#362b30', dirtDark: '#1f181b', grass: '#b91c1c', grassLight: '#f59e0b',
+        hazardLiquid: '#dc2626'
+      }
+    };
+
+    /**
+     * Draws our 16x24 pixel-art Hero:
+     * Brown hair, expressive eyes, flowing red scarf, blue tunic, brown pants.
+     */
+    function drawHeroSprite(ctx, x, y, w, h, state, facing, frameTime, invuln) {
+      if (invuln && Math.floor(frameTime * 20) % 2 === 0) return;
+
+      ctx.save();
+      ctx.translate(Math.round(x + w / 2), Math.round(y + h / 2));
+      if (state === 'dead') {
+        ctx.rotate(frameTime * 14);
+      } else if (facing < 0) {
+        ctx.scale(-1, 1);
+      }
+
+      const px = w / 16;
+      const py = h / 24;
+      const ox = -w / 2;
+      const oy = -h / 2;
+
+      const rect = (gx, gy, gw, gh, col) => {
+        ctx.fillStyle = col;
+        ctx.fillRect(Math.round(ox + gx * px), Math.round(oy + gy * py), Math.ceil(gw * px), Math.ceil(gh * py));
+      };
+
+      const bob = (state === 'idle') ? Math.round(Math.sin(frameTime * 5) * 0.6) : 0;
+
+      // Flowing Red Scarf tail (behind hero)
+      const scarfWave = Math.sin(frameTime * (state === 'run' ? 18 : 7)) * 1.6;
+      rect(0, 10 + bob + scarfWave * 0.4, 4, 3, '#d91e2a');
+      rect(-2, 11 + bob + scarfWave, 3, 2, '#ff3b47');
+
+      // Brown Hair
+      rect(4, 1 + bob, 8, 3, '#5c3317');
+      rect(3, 2 + bob, 10, 3, '#75421e');
+      rect(3, 5 + bob, 2, 3, '#5c3317');
+
+      // Face / Skin
+      rect(5, 4 + bob, 7, 5, '#ffcca3');
+      // Eye
+      rect(9, 5 + bob, 2, 2, '#1a0d08');
+
+      // Red Scarf Collar
+      rect(4, 9 + bob, 8, 2, '#ef233c');
+
+      // Blue Shirt / Tunic
+      rect(4, 11 + bob, 8, 6, '#1d63dc');
+      rect(5, 11 + bob, 6, 5, '#3b82f6');
+
+      // Arm swing
+      const armOffset = state === 'run' ? Math.sin(frameTime * 16) * 2 : 0;
+      rect(6 + armOffset, 12 + bob, 3, 4, '#2563eb');
+      rect(6 + armOffset, 15 + bob, 3, 2, '#ffcca3');
+
+      // Brown Pants & Animated Legs
+      if (state === 'jump') {
+        rect(4, 17, 3, 4, '#59361c');
+        rect(9, 16, 3, 4, '#59361c');
+        rect(3, 20, 4, 2, '#29170b');
+        rect(9, 19, 4, 2, '#29170b');
+      } else if (state === 'run') {
+        const stride = Math.sin(frameTime * 18) * 2.5;
+        rect(4 + stride, 17, 3, 5, '#59361c');
+        rect(9 - stride, 17, 3, 5, '#59361c');
+        rect(4 + stride, 21, 4, 3, '#29170b');
+        rect(9 - stride, 21, 4, 3, '#29170b');
+      } else {
+        rect(4, 17, 3, 5, '#59361c');
+        rect(9, 17, 3, 5, '#59361c');
+        rect(4, 21, 3, 3, '#29170b');
+        rect(9, 21, 3, 3, '#29170b');
+      }
+
+      ctx.restore();
+    }
+
+    /**
+     * Animates the Hero on the Main Menu Grass Pedestal
+     */
+    function renderMenuHeroPreview(time) {
+      const c = document.getElementById('menu-hero-canvas');
+      if (!c) return;
+      const ctx = c.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      ctx.clearRect(0, 0, c.width, c.height);
+
+      // Grass Pedestal
+      ctx.fillStyle = '#4d2915';
+      ctx.fillRect(16, 84, 64, 22);
+      ctx.fillStyle = '#6e3f24';
+      ctx.fillRect(18, 84, 60, 18);
+      ctx.fillStyle = '#38b03c';
+      ctx.fillRect(14, 78, 68, 8);
+      ctx.fillStyle = '#6ee052';
+      ctx.fillRect(14, 78, 68, 3);
+
+      // Hero Standing
+      drawHeroSprite(ctx, 32, 30, 32, 48, 'idle', 1, time, false);
+    }
+
+    /* ==========================================================================
+       4. ALL 21 UNIQUE, HAND-CRAFTED & PROGRESSIVELY HARDER LEVELS
+       Tile Grid Scale: TILE = 32px. Standard height = 15 tiles (480px logical height).
+       Row 13-14 = Ground floor.
+       ========================================================================== */
+    const TILE = 32;
+    const WORLD_ROWS = 15;
+    const WORLD_HEIGHT = WORLD_ROWS * TILE; // 480px logical vertical resolution
+
+    /**
+     * Helper to build rich, hand-tuned, guaranteed-beatable yet treacherous levels.
+     * Developers can easily edit any level entry below!
+     */
+    function createLevelDefinitions() {
+      return [
+        // LEVEL 1: Welcome, Hero (Tutorial, 25 coins, troll sign & pop-up spike)
+        {
+          id: 1,
+          name: 'Welcome, Hero',
+          theme: 'grass',
+          coinTarget: 25,
+          widthTiles: 75,
+          pits: [[16, 18], [34, 37], [54, 57]],
+          platforms: [
+            { x: 9, y: 10, w: 4 },
+            { x: 22, y: 10, w: 4 },
+            { x: 28, y: 8, w: 4 },
+            { x: 43, y: 10, w: 5 },
+            { x: 61, y: 9, w: 4 }
+          ],
+          crumble: [
+            { x: 35, y: 11, w: 2 }
+          ],
+          fakeGround: [
+            { x: 49, y: 13, w: 2 }
+          ],
+          movingPlatforms: [],
+          spikes: [
+            { x: 25, y: 12, hidden: false },
+            { x: 45, y: 12, hidden: true } // Surprise pop-up spike!
+          ],
+          saws: [],
+          slimes: [
+            { x: 39, y: 12, range: 4 }
+          ],
+          signs: [
+            { x: 13, y: 12, text: 'Jump pits! Easy right?' },
+            { x: 47, y: 12, text: 'Safe path ahead Trust me' }
+          ],
+          checkpoints: [{ x: 32, y: 12 }],
+          gems: [{ x: 29, y: 6 }],
+          fakeCoins: [{ x: 49.5, y: 11.5 }],
+          goalX: 70
+        },
+
+        // LEVEL 2: Slime Alley (Sunset theme, green slimes, 30 coins)
+        {
+          id: 2,
+          name: 'Slime Alley',
+          theme: 'sunset',
+          coinTarget: 30,
+          widthTiles: 82,
+          pits: [[15, 17], [31, 34], [51, 54], [66, 69]],
+          platforms: [
+            { x: 10, y: 10, w: 4 },
+            { x: 21, y: 9, w: 5 },
+            { x: 38, y: 10, w: 4 },
+            { x: 44, y: 8, w: 4 },
+            { x: 58, y: 10, w: 5 }
+          ],
+          crumble: [{ x: 67, y: 11, w: 2 }],
+          fakeGround: [{ x: 27, y: 13, w: 2 }],
+          movingPlatforms: [],
+          spikes: [
+            { x: 19, y: 12, hidden: true },
+            { x: 60, y: 12, hidden: false }
+          ],
+          saws: [],
+          slimes: [
+            { x: 12, y: 12, range: 3 },
+            { x: 23, y: 12, range: 4 },
+            { x: 41, y: 12, range: 5 },
+            { x: 62, y: 12, range: 3 }
+          ],
+          signs: [
+            { x: 25, y: 12, text: 'Slimes are friendly... NOT!' }
+          ],
+          checkpoints: [{ x: 36, y: 12 }],
+          gems: [{ x: 45, y: 6 }],
+          fakeCoins: [{ x: 27.5, y: 11.5 }],
+          goalX: 77
+        },
+
+        // LEVEL 3: Crumble Caverns (Cave theme, falling platforms, 30 coins)
+        {
+          id: 3,
+          name: 'Crumble Caverns',
+          theme: 'cave',
+          coinTarget: 30,
+          widthTiles: 85,
+          pits: [[12, 18], [26, 33], [44, 52], [62, 68]],
+          platforms: [
+            { x: 8, y: 10, w: 3 },
+            { x: 21, y: 10, w: 4 },
+            { x: 37, y: 9, w: 4 },
+            { x: 56, y: 10, w: 4 }
+          ],
+          crumble: [
+            { x: 13, y: 11, w: 2 },
+            { x: 16, y: 10, w: 2 },
+            { x: 27, y: 11, w: 2 },
+            { x: 30, y: 11, w: 2 },
+            { x: 45, y: 10, w: 2 },
+            { x: 49, y: 9, w: 2 },
+            { x: 64, y: 11, w: 2 }
+          ],
+          fakeGround: [{ x: 72, y: 13, w: 2 }],
+          movingPlatforms: [],
+          spikes: [
+            { x: 40, y: 12, hidden: true },
+            { x: 75, y: 12, hidden: true }
+          ],
+          saws: [],
+          slimes: [{ x: 22, y: 12, range: 3 }],
+          signs: [
+            { x: 10, y: 12, text: 'Don\'t stand still on wood!' }
+          ],
+          checkpoints: [{ x: 35, y: 12 }, { x: 58, y: 12 }],
+          gems: [{ x: 49, y: 7 }],
+          fakeCoins: [{ x: 72.5, y: 11.5 }],
+          goalX: 80
+        },
+
+        // LEVEL 4: Saw City (Saw blades introduced, 32 coins)
+        {
+          id: 4,
+          name: 'Saw City',
+          theme: 'sunset',
+          coinTarget: 32,
+          widthTiles: 88,
+          pits: [[18, 21], [38, 42], [60, 64]],
+          platforms: [
+            { x: 12, y: 10, w: 4 },
+            { x: 27, y: 9, w: 5 },
+            { x: 48, y: 10, w: 5 },
+            { x: 69, y: 9, w: 4 }
+          ],
+          crumble: [{ x: 39, y: 11, w: 2 }],
+          fakeGround: [],
+          movingPlatforms: [],
+          spikes: [{ x: 50, y: 9, hidden: true }],
+          saws: [
+            { x: 14, y: 12.5, moveX: 3, moveY: 0, speed: 2.2 },
+            { x: 29, y: 12.5, moveX: 4, moveY: 0, speed: 2.6 },
+            { x: 54, y: 12.5, moveX: 0, moveY: 2.5, speed: 3.0 },
+            { x: 73, y: 12.5, moveX: 3, moveY: 0, speed: 2.8 }
+          ],
+          slimes: [{ x: 45, y: 12, range: 3 }],
+          signs: [{ x: 9, y: 12, text: 'Watch your toes!' }],
+          checkpoints: [{ x: 35, y: 12 }, { x: 66, y: 12 }],
+          gems: [{ x: 29, y: 7 }],
+          fakeCoins: [{ x: 50, y: 7.5 }],
+          goalX: 83
+        },
+
+        // LEVEL 5: Spike Valley (Hidden pop-up spikes & fake coins, 34 coins)
+        {
+          id: 5,
+          name: 'Spike Valley',
+          theme: 'grass',
+          coinTarget: 34,
+          widthTiles: 90,
+          pits: [[16, 19], [35, 38], [56, 60]],
+          platforms: [
+            { x: 10, y: 10, w: 4 },
+            { x: 24, y: 10, w: 5 },
+            { x: 43, y: 9, w: 5 },
+            { x: 65, y: 10, w: 5 }
+          ],
+          crumble: [{ x: 57, y: 11, w: 2 }],
+          fakeGround: [{ x: 31, y: 13, w: 2 }],
+          movingPlatforms: [],
+          spikes: [
+            { x: 12, y: 12, hidden: true },
+            { x: 22, y: 12, hidden: false },
+            { x: 26, y: 9, hidden: true },
+            { x: 45, y: 12, hidden: true },
+            { x: 52, y: 12, hidden: true },
+            { x: 72, y: 12, hidden: true },
+            { x: 78, y: 12, hidden: true }
+          ],
+          saws: [{ x: 67, y: 12.5, moveX: 3, moveY: 0, speed: 2.4 }],
+          slimes: [{ x: 48, y: 12, range: 4 }],
+          signs: [
+            { x: 29, y: 12, text: 'Free coins ahead! Totally safe!' },
+            { x: 76, y: 12, text: 'Goal is right there!' }
+          ],
+          checkpoints: [{ x: 40, y: 12 }, { x: 63, y: 12 }],
+          gems: [{ x: 45, y: 6.5 }],
+          fakeCoins: [{ x: 31.5, y: 11.5 }, { x: 52, y: 11 }],
+          goalX: 85
+        },
+
+        // LEVEL 6: Night Forest (Dark woods & moving platforms, 35 coins)
+        {
+          id: 6,
+          name: 'Night Forest',
+          theme: 'night',
+          coinTarget: 35,
+          widthTiles: 92,
+          pits: [[14, 22], [32, 41], [54, 63], [72, 78]],
+          platforms: [
+            { x: 9, y: 10, w: 4 },
+            { x: 26, y: 10, w: 4 },
+            { x: 46, y: 9, w: 5 },
+            { x: 66, y: 10, w: 4 }
+          ],
+          crumble: [{ x: 74, y: 11, w: 2 }],
+          fakeGround: [],
+          movingPlatforms: [
+            { x: 15, y: 11, w: 3, moveX: 4, moveY: 0, speed: 1.8 },
+            { x: 33, y: 10, w: 3, moveX: 5, moveY: 0, speed: 2.0 },
+            { x: 55, y: 11, w: 3, moveX: 0, moveY: 3, speed: 2.1 }
+          ],
+          spikes: [{ x: 48, y: 8, hidden: true }],
+          saws: [{ x: 68, y: 12.5, moveX: 2, moveY: 0, speed: 2.5 }],
+          slimes: [{ x: 28, y: 12, range: 3 }, { x: 48, y: 12, range: 4 }],
+          signs: [{ x: 11, y: 12, text: 'Ride the floating logs!' }],
+          checkpoints: [{ x: 43, y: 12 }, { x: 66, y: 12 }],
+          gems: [{ x: 56.5, y: 7 }],
+          fakeCoins: [{ x: 48, y: 7 }],
+          goalX: 87
+        },
+
+        // LEVEL 7: Trust Issues (Troll signs & fake safe ground, 35 coins)
+        {
+          id: 7,
+          name: 'Trust Issues',
+          theme: 'grass',
+          coinTarget: 35,
+          widthTiles: 94,
+          pits: [[20, 23], [44, 48], [68, 72]],
+          platforms: [
+            { x: 12, y: 10, w: 4 },
+            { x: 29, y: 9, w: 5 },
+            { x: 53, y: 10, w: 5 },
+            { x: 76, y: 9, w: 4 }
+          ],
+          crumble: [{ x: 21, y: 11, w: 2 }, { x: 45, y: 11, w: 2 }],
+          fakeGround: [
+            { x: 15, y: 13, w: 3 },
+            { x: 36, y: 13, w: 3 },
+            { x: 61, y: 13, w: 3 },
+            { x: 82, y: 13, w: 2 }
+          ],
+          movingPlatforms: [],
+          spikes: [
+            { x: 26, y: 12, hidden: true },
+            { x: 55, y: 9, hidden: true },
+            { x: 86, y: 12, hidden: true }
+          ],
+          saws: [{ x: 78, y: 12.5, moveX: 3, moveY: 0, speed: 2.6 }],
+          slimes: [{ x: 31, y: 12, range: 3 }],
+          signs: [
+            { x: 13, y: 12, text: 'Solid ground ahead! 100%' },
+            { x: 34, y: 12, text: 'Trust the coins below!' },
+            { x: 59, y: 12, text: 'I never lie. Walk right!' },
+            { x: 80, y: 12, text: 'Almost at the end!' }
+          ],
+          checkpoints: [{ x: 41, y: 12 }, { x: 65, y: 12 }],
+          gems: [{ x: 31, y: 7 }],
+          fakeCoins: [{ x: 16, y: 11.5 }, { x: 37, y: 11.5 }, { x: 62, y: 11.5 }],
+          goalX: 89
+        },
+
+        // LEVEL 8: Slime Stampede (Dense slime waves, 36 coins)
+        {
+          id: 8,
+          name: 'Slime Stampede',
+          theme: 'sunset',
+          coinTarget: 36,
+          widthTiles: 95,
+          pits: [[22, 25], [48, 52], [73, 76]],
+          platforms: [
+            { x: 10, y: 10, w: 4 },
+            { x: 16, y: 8, w: 4 },
+            { x: 30, y: 10, w: 5 },
+            { x: 39, y: 8, w: 4 },
+            { x: 57, y: 10, w: 5 },
+            { x: 65, y: 8, w: 4 }
+          ],
+          crumble: [{ x: 49, y: 11, w: 2 }],
+          fakeGround: [{ x: 80, y: 13, w: 2 }],
+          movingPlatforms: [],
+          spikes: [{ x: 32, y: 9, hidden: true }],
+          saws: [],
+          slimes: [
+            { x: 12, y: 12, range: 4 },
+            { x: 18, y: 12, range: 3 },
+            { x: 28, y: 12, range: 4 },
+            { x: 35, y: 12, range: 5 },
+            { x: 43, y: 12, range: 4 },
+            { x: 56, y: 12, range: 4 },
+            { x: 63, y: 12, range: 5 },
+            { x: 69, y: 12, range: 3 }
+          ],
+          signs: [{ x: 8, y: 12, text: 'Take the high road!' }],
+          checkpoints: [{ x: 46, y: 12 }, { x: 71, y: 12 }],
+          gems: [{ x: 40.5, y: 6 }],
+          fakeCoins: [{ x: 80.5, y: 11.5 }],
+          goalX: 90
+        },
+
+        // LEVEL 9: Lava Trap (Volcanic theme, rising/falling platforms, 38 coins)
+        {
+          id: 9,
+          name: 'Lava Trap',
+          theme: 'lava',
+          coinTarget: 38,
+          widthTiles: 96,
+          pits: [[14, 24], [32, 43], [52, 64], [72, 82]],
+          platforms: [
+            { x: 9, y: 10, w: 4 },
+            { x: 26, y: 10, w: 5 },
+            { x: 45, y: 10, w: 5 },
+            { x: 66, y: 10, w: 5 }
+          ],
+          crumble: [
+            { x: 15, y: 11, w: 2 },
+            { x: 20, y: 10, w: 2 },
+            { x: 73, y: 11, w: 2 },
+            { x: 78, y: 10, w: 2 }
+          ],
+          fakeGround: [],
+          movingPlatforms: [
+            { x: 34, y: 11, w: 3, moveX: 5, moveY: 0, speed: 2.2 },
+            { x: 54, y: 10, w: 3, moveX: 6, moveY: 0, speed: 2.4 }
+          ],
+          spikes: [
+            { x: 28, y: 12, hidden: true },
+            { x: 68, y: 12, hidden: true }
+          ],
+          saws: [{ x: 47, y: 9.5, moveX: 3, moveY: 0, speed: 2.6 }],
+          slimes: [],
+          signs: [{ x: 11, y: 12, text: 'The floor is literally lava!' }],
+          checkpoints: [{ x: 46, y: 12 }, { x: 67, y: 12 }],
+          gems: [{ x: 57, y: 7 }],
+          fakeCoins: [{ x: 28, y: 11 }],
+          goalX: 91
+        },
+
+        // LEVEL 10: Saw Gauntlet (Fast alternating saws, 38 coins)
+        {
+          id: 10,
+          name: 'Saw Gauntlet',
+          theme: 'cave',
+          coinTarget: 38,
+          widthTiles: 98,
+          pits: [[24, 27], [52, 55], [78, 81]],
+          platforms: [
+            { x: 12, y: 9, w: 4 },
+            { x: 32, y: 9, w: 5 },
+            { x: 60, y: 9, w: 5 }
+          ],
+          crumble: [{ x: 53, y: 11, w: 2 }],
+          fakeGround: [{ x: 85, y: 13, w: 2 }],
+          movingPlatforms: [],
+          spikes: [{ x: 34, y: 8, hidden: true }],
+          saws: [
+            { x: 11, y: 12.5, moveX: 4, moveY: 0, speed: 3.1 },
+            { x: 18, y: 12.5, moveX: 0, moveY: 3, speed: 3.2 },
+            { x: 31, y: 12.5, moveX: 5, moveY: 0, speed: 3.4 },
+            { x: 42, y: 12.5, moveX: 4, moveY: 0, speed: 3.2 },
+            { x: 60, y: 12.5, moveX: 5, moveY: 0, speed: 3.5 },
+            { x: 70, y: 12.5, moveX: 0, moveY: 3, speed: 3.4 }
+          ],
+          slimes: [{ x: 47, y: 12, range: 3 }],
+          signs: [{ x: 8, y: 12, text: 'Timing is everything!' }],
+          checkpoints: [{ x: 49, y: 12 }, { x: 75, y: 12 }],
+          gems: [{ x: 62, y: 6.5 }],
+          fakeCoins: [{ x: 85.5, y: 11.5 }],
+          goalX: 93
+        },
+
+        // LEVEL 11: Ice Trap (Slippery ice physics + hidden spikes, 40 coins)
+        {
+          id: 11,
+          name: 'Ice Trap',
+          theme: 'ice',
+          slippery: true,
+          coinTarget: 40,
+          widthTiles: 100,
+          pits: [[18, 22], [40, 44], [64, 68], [82, 85]],
+          platforms: [
+            { x: 11, y: 10, w: 5 },
+            { x: 28, y: 9, w: 5 },
+            { x: 50, y: 10, w: 5 },
+            { x: 72, y: 9, w: 5 }
+          ],
+          crumble: [{ x: 41, y: 11, w: 2 }],
+          fakeGround: [{ x: 58, y: 13, w: 2 }],
+          movingPlatforms: [],
+          spikes: [
+            { x: 15, y: 12, hidden: true },
+            { x: 35, y: 12, hidden: false },
+            { x: 52, y: 9, hidden: true },
+            { x: 77, y: 12, hidden: true }
+          ],
+          saws: [{ x: 74, y: 12.5, moveX: 3, moveY: 0, speed: 2.6 }],
+          slimes: [{ x: 30, y: 12, range: 4 }],
+          signs: [{ x: 9, y: 12, text: 'Careful! Slippery ice!' }],
+          checkpoints: [{ x: 47, y: 12 }, { x: 70, y: 12 }],
+          gems: [{ x: 30, y: 6.5 }],
+          fakeCoins: [{ x: 58.5, y: 11.5 }],
+          goalX: 95
+        },
+
+        // LEVEL 12: Phantom Floor (Illusion blocks & fake coin baits, 40 coins)
+        {
+          id: 12,
+          name: 'Phantom Floor',
+          theme: 'night',
+          coinTarget: 40,
+          widthTiles: 100,
+          pits: [[22, 25], [50, 54], [76, 80]],
+          platforms: [
+            { x: 10, y: 10, w: 4 },
+            { x: 30, y: 9, w: 5 },
+            { x: 58, y: 10, w: 5 }
+          ],
+          crumble: [{ x: 23, y: 11, w: 2 }, { x: 77, y: 11, w: 2 }],
+          fakeGround: [
+            { x: 14, y: 13, w: 3 },
+            { x: 36, y: 13, w: 3 },
+            { x: 44, y: 13, w: 3 },
+            { x: 65, y: 13, w: 3 },
+            { x: 86, y: 13, w: 2 }
+          ],
+          movingPlatforms: [],
+          spikes: [
+            { x: 32, y: 8, hidden: true },
+            { x: 90, y: 12, hidden: true }
+          ],
+          saws: [{ x: 60, y: 12.5, moveX: 3, moveY: 0, speed: 2.8 }],
+          slimes: [{ x: 28, y: 12, range: 3 }],
+          signs: [{ x: 11, y: 12, text: 'Nothing is what it seems!' }],
+          checkpoints: [{ x: 48, y: 12 }, { x: 73, y: 12 }],
+          gems: [{ x: 60, y: 7 }],
+          fakeCoins: [{ x: 15, y: 11.5 }, { x: 37, y: 11.5 }, { x: 66, y: 11.5 }, { x: 86.5, y: 11.5 }],
+          goalX: 95
+        },
+
+        // LEVEL 13: Sky Jump (High-altitude cloud & crumbling bridge leaps, 42 coins)
+        {
+          id: 13,
+          name: 'Sky Jump',
+          theme: 'ice',
+          coinTarget: 42,
+          widthTiles: 102,
+          pits: [[11, 26], [33, 49], [56, 72], [79, 91]],
+          platforms: [
+            { x: 8, y: 10, w: 3 },
+            { x: 27, y: 10, w: 5 },
+            { x: 50, y: 10, w: 5 },
+            { x: 73, y: 10, w: 5 }
+          ],
+          crumble: [
+            { x: 13, y: 10, w: 2 },
+            { x: 18, y: 9, w: 2 },
+            { x: 23, y: 10, w: 2 },
+            { x: 58, y: 10, w: 2 },
+            { x: 63, y: 9, w: 2 },
+            { x: 68, y: 10, w: 2 }
+          ],
+          fakeGround: [],
+          movingPlatforms: [
+            { x: 35, y: 10, w: 3, moveX: 4, moveY: 0, speed: 2.2 },
+            { x: 43, y: 9, w: 3, moveX: 4, moveY: 0, speed: 2.4 },
+            { x: 81, y: 10, w: 3, moveX: 6, moveY: 0, speed: 2.6 }
+          ],
+          spikes: [{ x: 52, y: 12, hidden: true }],
+          saws: [{ x: 75, y: 9.5, moveX: 2, moveY: 0, speed: 2.8 }],
+          slimes: [],
+          signs: [{ x: 8, y: 12, text: 'Don\'t look down!' }],
+          checkpoints: [{ x: 29, y: 12 }, { x: 52, y: 12 }, { x: 75, y: 12 }],
+          gems: [{ x: 63.5, y: 6.5 }],
+          fakeCoins: [{ x: 52, y: 11 }],
+          goalX: 97
+        },
+
+        // LEVEL 14: Blade Runner (Moving saws synced with collapsing planks, 42 coins)
+        {
+          id: 14,
+          name: 'Blade Runner',
+          theme: 'sunset',
+          coinTarget: 42,
+          widthTiles: 104,
+          pits: [[16, 23], [44, 52], [72, 79]],
+          platforms: [
+            { x: 10, y: 9, w: 4 },
+            { x: 30, y: 9, w: 5 },
+            { x: 58, y: 9, w: 5 }
+          ],
+          crumble: [
+            { x: 17, y: 10, w: 2 },
+            { x: 20, y: 10, w: 2 },
+            { x: 46, y: 10, w: 2 },
+            { x: 49, y: 10, w: 2 },
+            { x: 74, y: 10, w: 2 }
+          ],
+          fakeGround: [{ x: 87, y: 13, w: 2 }],
+          movingPlatforms: [],
+          spikes: [{ x: 32, y: 8, hidden: true }],
+          saws: [
+            { x: 12, y: 12.5, moveX: 3, moveY: 0, speed: 3.3 },
+            { x: 28, y: 12.5, moveX: 5, moveY: 0, speed: 3.5 },
+            { x: 38, y: 12.5, moveX: 0, moveY: 3, speed: 3.5 },
+            { x: 57, y: 12.5, moveX: 5, moveY: 0, speed: 3.6 },
+            { x: 66, y: 12.5, moveX: 4, moveY: 0, speed: 3.4 },
+            { x: 92, y: 12.5, moveX: 3, moveY: 0, speed: 3.6 }
+          ],
+          slimes: [{ x: 82, y: 12, range: 3 }],
+          signs: [{ x: 8, y: 12, text: 'Run fast, jump faster!' }],
+          checkpoints: [{ x: 41, y: 12 }, { x: 69, y: 12 }],
+          gems: [{ x: 60, y: 6.5 }],
+          fakeCoins: [{ x: 87.5, y: 11.5 }],
+          goalX: 99
+        },
+
+        // LEVEL 15: Devil's Maze (Multi-tier vertical & horizontal trap routes, 44 coins)
+        {
+          id: 15,
+          name: "Devil's Maze",
+          theme: 'castle',
+          coinTarget: 44,
+          widthTiles: 106,
+          pits: [[20, 24], [48, 52], [76, 80]],
+          platforms: [
+            { x: 9, y: 10, w: 5 },
+            { x: 14, y: 7, w: 5 },
+            { x: 28, y: 10, w: 5 },
+            { x: 34, y: 7, w: 6 },
+            { x: 56, y: 10, w: 5 },
+            { x: 62, y: 7, w: 6 },
+            { x: 84, y: 9, w: 5 }
+          ],
+          crumble: [{ x: 21, y: 11, w: 2 }, { x: 49, y: 11, w: 2 }],
+          fakeGround: [{ x: 42, y: 13, w: 2 }, { x: 92, y: 13, w: 2 }],
+          movingPlatforms: [],
+          spikes: [
+            { x: 16, y: 6, hidden: true },
+            { x: 36, y: 12, hidden: false },
+            { x: 64, y: 6, hidden: true },
+            { x: 96, y: 12, hidden: true }
+          ],
+          saws: [
+            { x: 30, y: 12.5, moveX: 4, moveY: 0, speed: 3.1 },
+            { x: 58, y: 12.5, moveX: 5, moveY: 0, speed: 3.2 }
+          ],
+          slimes: [{ x: 12, y: 12, range: 4 }, { x: 68, y: 12, range: 4 }],
+          signs: [{ x: 7, y: 12, text: 'High path or low path?' }],
+          checkpoints: [{ x: 45, y: 12 }, { x: 73, y: 12 }],
+          gems: [{ x: 37, y: 5 }],
+          fakeCoins: [{ x: 42.5, y: 11.5 }, { x: 92.5, y: 11.5 }],
+          goalX: 101
+        },
+
+        // LEVEL 16: Frostbite Falls (Ice physics + falling platforms + slimes, 44 coins)
+        {
+          id: 16,
+          name: 'Frostbite Falls',
+          theme: 'ice',
+          slippery: true,
+          coinTarget: 44,
+          widthTiles: 106,
+          pits: [[15, 22], [38, 46], [64, 72], [84, 89]],
+          platforms: [
+            { x: 9, y: 10, w: 4 },
+            { x: 26, y: 9, w: 5 },
+            { x: 50, y: 10, w: 5 },
+            { x: 75, y: 9, w: 5 }
+          ],
+          crumble: [
+            { x: 16, y: 10, w: 2 },
+            { x: 19, y: 10, w: 2 },
+            { x: 65, y: 10, w: 2 },
+            { x: 69, y: 10, w: 2 }
+          ],
+          fakeGround: [{ x: 58, y: 13, w: 2 }],
+          movingPlatforms: [
+            { x: 40, y: 10, w: 3, moveX: 4, moveY: 0, speed: 2.3 }
+          ],
+          spikes: [
+            { x: 28, y: 8, hidden: true },
+            { x: 77, y: 8, hidden: true }
+          ],
+          saws: [{ x: 52, y: 12.5, moveX: 3, moveY: 0, speed: 2.9 }],
+          slimes: [
+            { x: 29, y: 12, range: 4 },
+            { x: 78, y: 12, range: 3 }
+          ],
+          signs: [{ x: 7, y: 12, text: 'Brake early on ice!' }],
+          checkpoints: [{ x: 48, y: 12 }, { x: 73, y: 12 }],
+          gems: [{ x: 52, y: 7 }],
+          fakeCoins: [{ x: 58.5, y: 11.5 }],
+          goalX: 101
+        },
+
+        // LEVEL 17: Magma Core (Lava theme, narrow ledges, sudden spikes, 45 coins)
+        {
+          id: 17,
+          name: 'Magma Core',
+          theme: 'lava',
+          coinTarget: 45,
+          widthTiles: 108,
+          pits: [[12, 23], [31, 43], [52, 65], [74, 86]],
+          platforms: [
+            { x: 8, y: 10, w: 3 },
+            { x: 25, y: 10, w: 5 },
+            { x: 45, y: 10, w: 5 },
+            { x: 67, y: 10, w: 5 },
+            { x: 88, y: 10, w: 4 }
+          ],
+          crumble: [
+            { x: 14, y: 10, w: 2 },
+            { x: 19, y: 9, w: 2 },
+            { x: 76, y: 10, w: 2 },
+            { x: 81, y: 9, w: 2 }
+          ],
+          fakeGround: [{ x: 95, y: 13, w: 2 }],
+          movingPlatforms: [
+            { x: 33, y: 10, w: 3, moveX: 6, moveY: 0, speed: 2.5 },
+            { x: 54, y: 10, w: 3, moveX: 7, moveY: 0, speed: 2.7 }
+          ],
+          spikes: [
+            { x: 27, y: 12, hidden: true },
+            { x: 47, y: 12, hidden: true },
+            { x: 69, y: 12, hidden: true }
+          ],
+          saws: [{ x: 69, y: 9.5, moveX: 2, moveY: 0, speed: 3.1 }],
+          slimes: [],
+          signs: [{ x: 8, y: 12, text: 'Heat rising! Keep moving!' }],
+          checkpoints: [{ x: 46, y: 12 }, { x: 68, y: 12 }],
+          gems: [{ x: 57, y: 7 }],
+          fakeCoins: [{ x: 95.5, y: 11.5 }],
+          goalX: 103
+        },
+
+        // LEVEL 18: Chaos Citadel (All trap types combined, 46 coins)
+        {
+          id: 18,
+          name: 'Chaos Citadel',
+          theme: 'castle',
+          coinTarget: 46,
+          widthTiles: 110,
+          pits: [[18, 23], [44, 50], [72, 78]],
+          platforms: [
+            { x: 10, y: 9, w: 4 },
+            { x: 30, y: 9, w: 5 },
+            { x: 56, y: 9, w: 5 },
+            { x: 84, y: 9, w: 4 }
+          ],
+          crumble: [{ x: 19, y: 10, w: 2 }, { x: 73, y: 10, w: 2 }],
+          fakeGround: [
+            { x: 25, y: 13, w: 2 },
+            { x: 64, y: 13, w: 2 },
+            { x: 94, y: 13, w: 2 }
+          ],
+          movingPlatforms: [
+            { x: 45, y: 10, w: 3, moveX: 3, moveY: 0, speed: 2.4 }
+          ],
+          spikes: [
+            { x: 12, y: 8, hidden: true },
+            { x: 32, y: 8, hidden: true },
+            { x: 58, y: 8, hidden: true },
+            { x: 99, y: 12, hidden: true }
+          ],
+          saws: [
+            { x: 14, y: 12.5, moveX: 3, moveY: 0, speed: 3.4 },
+            { x: 35, y: 12.5, moveX: 4, moveY: 0, speed: 3.5 },
+            { x: 85, y: 12.5, moveX: 4, moveY: 0, speed: 3.6 }
+          ],
+          slimes: [
+            { x: 31, y: 12, range: 3 },
+            { x: 59, y: 12, range: 3 }
+          ],
+          signs: [{ x: 8, y: 12, text: 'Welcome to Chaos!' }],
+          checkpoints: [{ x: 42, y: 12 }, { x: 70, y: 12 }],
+          gems: [{ x: 58, y: 6 }],
+          fakeCoins: [{ x: 25.5, y: 11.5 }, { x: 64.5, y: 11.5 }],
+          goalX: 105
+        },
+
+        // LEVEL 19: Nightmare Bridge (Long crumbling bridge gauntlet with saws, 48 coins)
+        {
+          id: 19,
+          name: 'Nightmare Bridge',
+          theme: 'cave',
+          coinTarget: 48,
+          widthTiles: 112,
+          pits: [[12, 34], [44, 68], [78, 98]],
+          platforms: [
+            { x: 8, y: 10, w: 3 },
+            { x: 36, y: 10, w: 6 },
+            { x: 70, y: 10, w: 6 },
+            { x: 100, y: 10, w: 4 }
+          ],
+          crumble: [
+            { x: 14, y: 10, w: 2 },
+            { x: 18, y: 10, w: 2 },
+            { x: 22, y: 10, w: 2 },
+            { x: 26, y: 10, w: 2 },
+            { x: 30, y: 10, w: 2 },
+            { x: 46, y: 10, w: 2 },
+            { x: 50, y: 10, w: 2 },
+            { x: 54, y: 10, w: 2 },
+            { x: 58, y: 10, w: 2 },
+            { x: 62, y: 10, w: 2 },
+            { x: 80, y: 10, w: 2 },
+            { x: 85, y: 10, w: 2 },
+            { x: 90, y: 10, w: 2 },
+            { x: 94, y: 10, w: 2 }
+          ],
+          fakeGround: [],
+          movingPlatforms: [],
+          spikes: [
+            { x: 39, y: 12, hidden: true },
+            { x: 73, y: 12, hidden: true }
+          ],
+          saws: [
+            { x: 22, y: 7.5, moveX: 0, moveY: 3, speed: 3.1 },
+            { x: 54, y: 7.5, moveX: 0, moveY: 3, speed: 3.3 },
+            { x: 86, y: 7.5, moveX: 0, moveY: 3, speed: 3.5 }
+          ],
+          slimes: [],
+          signs: [{ x: 8, y: 12, text: 'Never stop sprinting!' }],
+          checkpoints: [{ x: 38, y: 12 }, { x: 72, y: 12 }],
+          gems: [{ x: 54, y: 6.5 }],
+          fakeCoins: [{ x: 39, y: 11 }],
+          goalX: 107
+        },
+
+        // LEVEL 20: Gate of Doom (Pre-boss endurance run, 48 coins)
+        {
+          id: 20,
+          name: 'Gate of Doom',
+          theme: 'castle',
+          coinTarget: 48,
+          widthTiles: 115,
+          pits: [[16, 21], [42, 48], [70, 76], [92, 97]],
+          platforms: [
+            { x: 10, y: 9, w: 4 },
+            { x: 28, y: 9, w: 5 },
+            { x: 54, y: 9, w: 5 },
+            { x: 82, y: 9, w: 5 }
+          ],
+          crumble: [{ x: 17, y: 10, w: 2 }, { x: 71, y: 10, w: 2 }, { x: 93, y: 10, w: 2 }],
+          fakeGround: [{ x: 24, y: 13, w: 2 }, { x: 63, y: 13, w: 2 }, { x: 102, y: 13, w: 2 }],
+          movingPlatforms: [
+            { x: 43, y: 10, w: 3, moveX: 3, moveY: 0, speed: 2.6 }
+          ],
+          spikes: [
+            { x: 12, y: 8, hidden: true },
+            { x: 30, y: 8, hidden: true },
+            { x: 56, y: 8, hidden: true },
+            { x: 84, y: 8, hidden: true },
+            { x: 106, y: 12, hidden: true }
+          ],
+          saws: [
+            { x: 13, y: 12.5, moveX: 3, moveY: 0, speed: 3.6 },
+            { x: 33, y: 12.5, moveX: 5, moveY: 0, speed: 3.7 },
+            { x: 58, y: 12.5, moveX: 4, moveY: 0, speed: 3.7 },
+            { x: 85, y: 12.5, moveX: 4, moveY: 0, speed: 3.8 }
+          ],
+          slimes: [
+            { x: 31, y: 12, range: 4 },
+            { x: 57, y: 12, range: 4 }
+          ],
+          signs: [{ x: 8, y: 12, text: 'The Devil awaits in Level 21!' }],
+          checkpoints: [{ x: 40, y: 12 }, { x: 68, y: 12 }, { x: 89, y: 12 }],
+          gems: [{ x: 56, y: 6 }],
+          fakeCoins: [{ x: 24.5, y: 11.5 }, { x: 102.5, y: 11.5 }],
+          goalX: 110
+        },
+
+        // LEVEL 21: Final Devil Level (Hardest + Devil Boss Arena Teaser, 50 coins)
+        {
+          id: 21,
+          name: 'Final Devil Level',
+          theme: 'lava',
+          hasBossTeaser: true,
+          coinTarget: 50,
+          widthTiles: 122,
+          pits: [[16, 22], [42, 48], [68, 74]],
+          platforms: [
+            { x: 10, y: 9, w: 4 },
+            { x: 28, y: 9, w: 5 },
+            { x: 54, y: 9, w: 5 },
+            { x: 82, y: 9, w: 5 },
+            { x: 96, y: 8, w: 6 }
+          ],
+          crumble: [
+            { x: 17, y: 10, w: 2 },
+            { x: 43, y: 10, w: 2 },
+            { x: 69, y: 10, w: 2 }
+          ],
+          fakeGround: [
+            { x: 24, y: 13, w: 2 },
+            { x: 62, y: 13, w: 2 },
+            { x: 90, y: 13, w: 2 }
+          ],
+          movingPlatforms: [
+            { x: 45, y: 9, w: 3, moveX: 2, moveY: 0, speed: 2.8 }
+          ],
+          spikes: [
+            { x: 12, y: 8, hidden: true },
+            { x: 30, y: 8, hidden: true },
+            { x: 56, y: 8, hidden: true },
+            { x: 84, y: 8, hidden: true },
+            { x: 105, y: 12, hidden: true }
+          ],
+          saws: [
+            { x: 14, y: 12.5, moveX: 3, moveY: 0, speed: 3.8 },
+            { x: 33, y: 12.5, moveX: 5, moveY: 0, speed: 3.9 },
+            { x: 58, y: 12.5, moveX: 4, moveY: 0, speed: 3.9 },
+            { x: 86, y: 12.5, moveX: 4, moveY: 0, speed: 4.0 }
+          ],
+          slimes: [
+            { x: 31, y: 12, range: 4 },
+            { x: 57, y: 12, range: 4 },
+            { x: 95, y: 12, range: 5 }
+          ],
+          signs: [
+            { x: 8, y: 12, text: 'DEFEAT THE TRAP DEVIL!' },
+            { x: 78, y: 12, text: 'BOSS ARENA AHEAD!' }
+          ],
+          checkpoints: [{ x: 40, y: 12 }, { x: 66, y: 12 }, { x: 79, y: 12 }],
+          gems: [{ x: 98.5, y: 6 }],
+          fakeCoins: [{ x: 24.5, y: 11.5 }, { x: 62.5, y: 11.5 }, { x: 90.5, y: 11.5 }],
+          goalX: 116
+        }
+      ];
+    }
+
+    const LEVELS = createLevelDefinitions();
+
+    /* ==========================================================================
+       5. CORE GAME ENGINE (PHYSICS, TRAPS, PARTICLES, CAMERA & RENDER LOOP)
+       ========================================================================== */
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const Input = {
+      left: false,
+      right: false,
+      jumpPressed: false,
+      jumpHeld: false
+    };
+
+    const Game = {
+      mode: 'MENU', // 'MENU' | 'PLAYING' | 'PAUSED' | 'COMPLETE'
+      levelIndex: 0,
+      levelData: null,
+      world: null,
+      cameraX: 0,
+      shakeTimer: 0,
+      shakeIntensity: 0,
+      bannerTimer: 0,
+      deathBannerTimer: 0,
+      time: 0,
+      lastTimestamp: 0,
+
+      player: {
+        x: 64,
+        y: 300,
+        w: 22,
+        h: 32,
+        vx: 0,
+        vy: 0,
+        facing: 1,
+        onGround: false,
+        coyoteTimer: 0,
+        jumpBufferTimer: 0,
+        hp: 3,
+        maxHp: 3,
+        invulnTimer: 0,
+        dead: false,
+        deathTimer: 0,
+        spawnX: 64,
+        spawnY: 320
+      },
+
+      stats: {
+        coins: 0,
+        coinTarget: 25,
+        levelDeaths: 0
+      }
+    };
+
+    /**
+     * Compiles a declarative level definition into live interactive entities & tiles.
+     */
+    function loadLevel(index) {
+      const safeIndex = Math.max(0, Math.min(LEVELS.length - 1, index));
+      Game.levelIndex = safeIndex;
+      const def = LEVELS[safeIndex];
+      Game.levelData = def;
+
+      // Build solid ground tiles (rows 13 & 14) excluding pits & fake ground
+      const groundMap = new Array(def.widthTiles).fill(true);
+      (def.pits || []).forEach(([start, end]) => {
+        for (let c = start; c <= end; c++) {
+          if (c >= 0 && c < def.widthTiles) groundMap[c] = false;
+        }
+      });
+
+      const fakeGroundTiles = [];
+      (def.fakeGround || []).forEach(fg => {
+        for (let i = 0; i < fg.w; i++) {
+          const col = fg.x + i;
+          groundMap[col] = false;
+          fakeGroundTiles.push({
+            x: col * TILE,
+            y: fg.y * TILE,
+            w: TILE,
+            h: TILE * 2,
+            revealed: false,
+            alpha: 1
+          });
+        }
+      });
+
+      const solids = [];
+      for (let c = 0; c < def.widthTiles; c++) {
+        if (groundMap[c]) {
+          solids.push({
+            x: c * TILE,
+            y: 13 * TILE,
+            w: TILE,
+            h: TILE * 2,
+            isGround: true
+          });
+        }
+      }
+      // Left & Right invisible boundary walls
+      solids.push({ x: -TILE, y: 0, w: TILE, h: WORLD_HEIGHT, invisible: true });
+      solids.push({ x: def.widthTiles * TILE, y: 0, w: TILE, h: WORLD_HEIGHT, invisible: true });
+
+      // Elevated static platforms
+      (def.platforms || []).forEach(p => {
+        for (let i = 0; i < p.w; i++) {
+          solids.push({
+            x: (p.x + i) * TILE,
+            y: p.y * TILE,
+            w: TILE,
+            h: TILE * 0.75,
+            isPlatform: true
+          });
+        }
+      });
+
+      // Crumbling / Falling platforms
+      const crumbles = (def.crumble || []).map(cr => ({
+        origX: cr.x * TILE,
+        origY: cr.y * TILE,
+        x: cr.x * TILE,
+        y: cr.y * TILE,
+        w: cr.w * TILE,
+        h: 18,
+        state: 'idle', // 'idle' | 'shaking' | 'falling' | 'respawning'
+        timer: 0,
+        vy: 0
+      }));
+
+      // Moving platforms
+      const movers = (def.movingPlatforms || []).map(mp => ({
+        baseX: mp.x * TILE,
+        baseY: mp.y * TILE,
+        x: mp.x * TILE,
+        y: mp.y * TILE,
+        prevX: mp.x * TILE,
+        prevY: mp.y * TILE,
+        w: mp.w * TILE,
+        h: 18,
+        moveX: mp.moveX * TILE,
+        moveY: mp.moveY * TILE,
+        speed: mp.speed,
+        phase: 0
+      }));
+
+      // Spikes (static + surprise hidden pop-up spikes)
+      const spikes = (def.spikes || []).map(sp => ({
+        x: sp.x * TILE + 4,
+        y: sp.y * TILE + 12,
+        w: TILE - 8,
+        h: 20,
+        hidden: !!sp.hidden,
+        popped: !sp.hidden,
+        popProgress: sp.hidden ? 0 : 1
+      }));
+
+      // Rotating Saw Blades
+      const saws = (def.saws || []).map(sw => ({
+        baseX: sw.x * TILE,
+        baseY: sw.y * TILE,
+        x: sw.x * TILE,
+        y: sw.y * TILE,
+        r: 18,
+        moveX: sw.moveX * TILE,
+        moveY: sw.moveY * TILE,
+        speed: sw.speed,
+        angle: 0
+      }));
+
+      // Slime Enemies
+      const slimes = (def.slimes || []).map(sl => ({
+        baseX: sl.x * TILE,
+        x: sl.x * TILE,
+        y: sl.y * TILE + 8,
+        w: 28,
+        h: 24,
+        range: sl.range * TILE,
+        dir: 1,
+        speed: 58 + def.id * 2,
+        hopPhase: Math.random() * Math.PI * 2
+      }));
+
+      // Checkpoints
+      const checkpoints = (def.checkpoints || []).map(cp => ({
+        x: cp.x * TILE,
+        y: cp.y * TILE - 12,
+        w: 24,
+        h: 44,
+        active: false
+      }));
+
+      // Blue Bonus Gems (+1 HP & bonus score)
+      const gems = (def.gems || []).map(gm => ({
+        x: gm.x * TILE + 6,
+        y: gm.y * TILE + 6,
+        w: 20,
+        h: 20,
+        collected: false
+      }));
+
+      // Fake Troll Coins (morph into spikes when touched!)
+      const fakeCoins = (def.fakeCoins || []).map(fc => ({
+        x: fc.x * TILE + 7,
+        y: fc.y * TILE + 7,
+        w: 18,
+        h: 18,
+        triggered: false
+      }));
+
+      // Procedurally distribute the exact `coinTarget` golden coins along safe & adventurous paths
+      const coins = [];
+      const usableStart = 5;
+      const usableEnd = def.goalX - 3;
+      const step = (usableEnd - usableStart) / def.coinTarget;
+      for (let i = 0; i < def.coinTarget; i++) {
+        const cx = Math.round((usableStart + i * step) * TILE) + 8;
+        // Place coins either above platforms or in inviting jump arcs over ground/pits
+        let cy = 11.5 * TILE;
+        const plat = (def.platforms || []).find(p => cx >= p.x * TILE && cx <= (p.x + p.w) * TILE);
+        if (plat) {
+          cy = (plat.y - 1.3) * TILE;
+        } else if (i % 3 === 1) {
+          cy = 9.5 * TILE;
+        }
+        coins.push({
+          x: cx,
+          y: cy,
+          w: 16,
+          h: 16,
+          collected: false,
+          bobOffset: i * 0.5
+        });
+      }
+
+      // Final Devil Boss Teaser entity for Level 21
+      const boss = def.hasBossTeaser ? {
+        x: (def.goalX - 8) * TILE,
+        y: 6 * TILE,
+        w: 64,
+        h: 72,
+        fireTimer: 0,
+        fireballs: []
+      } : null;
+
+      Game.world = {
+        solids,
+        fakeGroundTiles,
+        crumbles,
+        movers,
+        spikes,
+        saws,
+        slimes,
+        signs: (def.signs || []).map(s => ({ x: s.x * TILE, y: s.y * TILE + 4, text: s.text })),
+        checkpoints,
+        gems,
+        fakeCoins,
+        coins,
+        boss,
+        particles: [],
+        goal: {
+          x: def.goalX * TILE,
+          y: 10.5 * TILE,
+          w: 36,
+          h: 80
+        }
+      };
+
+      // Reset Player & Level Stats
+      const p = Game.player;
+      p.spawnX = 3 * TILE;
+      p.spawnY = 11 * TILE;
+      p.x = p.spawnX;
+      p.y = p.spawnY;
+      p.vx = 0;
+      p.vy = 0;
+      p.hp = 3;
+      p.invulnTimer = 0;
+      p.dead = false;
+      p.deathTimer = 0;
+      p.onGround = false;
+
+      Game.stats.coins = 0;
+      Game.stats.coinTarget = def.coinTarget;
+      Game.stats.levelDeaths = 0;
+      Game.cameraX = 0;
+      Game.bannerTimer = 2.6;
+      Game.deathBannerTimer = 0;
+      Game.mode = 'PLAYING';
+
+      showScreen('PLAYING');
+      updateHUD();
+    }
+
+    function spawnParticles(x, y, color, count = 10, speed = 160) {
+      if (!Game.world) return;
+      for (let i = 0; i < count; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const spd = (0.3 + Math.random() * 0.7) * speed;
+        Game.world.particles.push({
+          x,
+          y,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd - 40,
+          size: 3 + Math.floor(Math.random() * 4),
+          color,
+          life: 0.35 + Math.random() * 0.35,
+          maxLife: 0.7
+        });
+      }
+    }
+
+    function rectsOverlap(a, b) {
+      return (
+        a.x < b.x + b.w &&
+        a.x + a.w > b.x &&
+        a.y < b.y + b.h &&
+        a.y + a.h > b.y
+      );
+    }
+
+    /**
+     * Handles player damage (lose 1 HP + knockback + respawn at checkpoint if HP <= 0)
+     */
+    function damagePlayer(sourceX) {
+      const p = Game.player;
+      if (p.dead || p.invulnTimer > 0) return;
+
+      p.hp -= 1;
+      Game.shakeTimer = 0.28;
+      Game.shakeIntensity = 7;
+      spawnParticles(p.x + p.w / 2, p.y + p.h / 2, '#ff2a3c', 14, 180);
+
+      if (p.hp <= 0) {
+        killPlayer();
+      } else {
+        Sound.sfxHurt();
+        p.invulnTimer = 1.25;
+        const knockDir = (p.x + p.w / 2) < sourceX ? -1 : 1;
+        p.vx = knockDir * 240;
+        p.vy = -290;
+        p.onGround = false;
+        updateHUD();
+      }
+    }
+
+    /**
+     * Instant death (pitfall or 0 HP) -> increments death counters & quick respawn at checkpoint
+     */
+    function killPlayer() {
+      const p = Game.player;
+      if (p.dead) return;
+      p.dead = true;
+      p.hp = 0;
+      p.deathTimer = 0.85;
+      p.vy = -340;
+      p.vx = 0;
+
+      Game.stats.levelDeaths += 1;
+      SaveData.totalDeaths += 1;
+      writeSave();
+
+      Game.shakeTimer = 0.35;
+      Game.shakeIntensity = 9;
+      Game.deathBannerTimer = 1.15;
+      Sound.sfxDeath();
+      spawnParticles(p.x + p.w / 2, p.y + p.h / 2, '#ef233c', 22, 220);
+      updateHUD();
+    }
+
+    function respawnAtCheckpoint() {
+      const p = Game.player;
+      p.x = p.spawnX;
+      p.y = p.spawnY;
+      p.vx = 0;
+      p.vy = 0;
+      p.hp = 3;
+      p.dead = false;
+      p.invulnTimer = 1.0;
+
+      // Reset crumbling platforms & fake coins so traps remain fair
+      Game.world.crumbles.forEach(cr => {
+        cr.x = cr.origX;
+        cr.y = cr.origY;
+        cr.state = 'idle';
+        cr.timer = 0;
+        cr.vy = 0;
+      });
+      Game.world.fakeCoins.forEach(fc => (fc.triggered = false));
+      updateHUD();
+    }
+
+    function completeLevel() {
+      if (Game.mode === 'COMPLETE') return;
+      Game.mode = 'COMPLETE';
+      Sound.sfxWin();
+
+      const def = Game.levelData;
+      const coinRatio = Game.stats.coins / Math.max(1, def.coinTarget);
+      let stars = 1;
+      if (coinRatio >= 0.75 && Game.stats.levelDeaths <= 3) stars = 2;
+      if (coinRatio >= 0.9 && Game.stats.levelDeaths === 0) stars = 3;
+
+      const prevBest = SaveData.levelStars[def.id] || 0;
+      if (stars > prevBest) SaveData.levelStars[def.id] = stars;
+      SaveData.totalCoins += Game.stats.coins;
+
+      if (def.id >= SaveData.unlockedLevel && def.id < LEVELS.length) {
+        SaveData.unlockedLevel = def.id + 1;
+      }
+      writeSave();
+
+      // Populate Level Complete Modal
+      document.getElementById('complete-title').textContent = `LEVEL ${def.id} CLEARED!`;
+      document.getElementById('complete-stars').textContent = '★'.repeat(stars) + '☆'.repeat(3 - stars);
+      document.getElementById('complete-stats').innerHTML =
+        `COINS: ${Game.stats.coins} / ${def.coinTarget}<br>DEATHS: ${Game.stats.levelDeaths}`;
+
+      const nextBtn = document.getElementById('complete-next');
+      if (def.id >= LEVELS.length) {
+        nextBtn.textContent = 'ALL CLEARED!';
+      } else {
+        nextBtn.textContent = 'NEXT';
+      }
+
+      openModal('modal-complete');
+    }
+
+    /**
+     * Fixed-timestep physics update (dt in seconds)
+     */
+    function updateGame(dt) {
+      Game.time += dt;
+      if (Game.mode !== 'PLAYING') return;
+
+      if (Game.bannerTimer > 0) Game.bannerTimer -= dt;
+      if (Game.deathBannerTimer > 0) Game.deathBannerTimer -= dt;
+      if (Game.shakeTimer > 0) Game.shakeTimer -= dt;
+
+      const p = Game.player;
+      const w = Game.world;
+      const def = Game.levelData;
+
+      // Update Particles
+      for (let i = w.particles.length - 1; i >= 0; i--) {
+        const pt = w.particles[i];
+        pt.x += pt.vx * dt;
+        pt.y += pt.vy * dt;
+        pt.vy += 450 * dt;
+        pt.life -= dt;
+        if (pt.life <= 0) w.particles.splice(i, 1);
+      }
+
+      // Death animation & quick respawn timer
+      if (p.dead) {
+        p.vy += 900 * dt;
+        p.y += p.vy * dt;
+        p.deathTimer -= dt;
+        if (p.deathTimer <= 0) {
+          respawnAtCheckpoint();
+        }
+        return;
+      }
+
+      if (p.invulnTimer > 0) p.invulnTimer -= dt;
+
+      // 1. Update Moving Platforms
+      w.movers.forEach(mp => {
+        mp.prevX = mp.x;
+        mp.prevY = mp.y;
+        mp.phase += dt * mp.speed;
+        mp.x = mp.baseX + Math.sin(mp.phase) * mp.moveX;
+        mp.y = mp.baseY + Math.sin(mp.phase) * mp.moveY;
+      });
+
+      // 2. Update Crumbling Platforms
+      w.crumbles.forEach(cr => {
+        if (cr.state === 'shaking') {
+          cr.timer -= dt;
+          if (cr.timer <= 0) {
+            cr.state = 'falling';
+            Sound.sfxTrap();
+          }
+        } else if (cr.state === 'falling') {
+          cr.vy += 880 * dt;
+          cr.y += cr.vy * dt;
+          if (cr.y > WORLD_HEIGHT + 80) {
+            cr.state = 'respawning';
+            cr.timer = 2.6;
+          }
+        } else if (cr.state === 'respawning') {
+          cr.timer -= dt;
+          if (cr.timer <= 0) {
+            cr.x = cr.origX;
+            cr.y = cr.origY;
+            cr.vy = 0;
+            cr.state = 'idle';
+          }
+        }
+      });
+
+      // 3. Player Horizontal Physics (with Ice slipperiness support)
+      const maxSpeed = 235;
+      const accel = def.slippery ? 520 : 1850;
+      const friction = def.slippery ? 260 : 1650;
+
+      if (Input.left && !Input.right) {
+        p.vx -= accel * dt;
+        if (p.vx < -maxSpeed) p.vx = -maxSpeed;
+        p.facing = -1;
+      } else if (Input.right && !Input.left) {
+        p.vx += accel * dt;
+        if (p.vx > maxSpeed) p.vx = maxSpeed;
+        p.facing = 1;
+      } else {
+        if (Math.abs(p.vx) <= friction * dt) {
+          p.vx = 0;
+        } else {
+          p.vx -= Math.sign(p.vx) * friction * dt;
+        }
+      }
+
+      // 4. Coyote Time & Jump Buffering (NO double jump!)
+      if (p.onGround) {
+        p.coyoteTimer = 0.11;
+      } else {
+        p.coyoteTimer -= dt;
+      }
+
+      if (Input.jumpPressed) {
+        p.jumpBufferTimer = 0.12;
+        Input.jumpPressed = false;
+      } else {
+        p.jumpBufferTimer -= dt;
+      }
+
+      if (p.jumpBufferTimer > 0 && p.coyoteTimer > 0) {
+        p.vy = -445;
+        p.onGround = false;
+        p.coyoteTimer = 0;
+        p.jumpBufferTimer = 0;
+        Sound.sfxJump();
+        spawnParticles(p.x + p.w / 2, p.y + p.h, '#e5e7eb', 5, 80);
+      }
+
+      // Variable jump height (releasing jump early cuts upward velocity)
+      if (!Input.jumpHeld && p.vy < -140) {
+        p.vy *= 0.86;
+      }
+
+      // Apply Gravity
+      p.vy += 1180 * dt;
+      if (p.vy > 680) p.vy = 680;
+
+      // 5. Move & Collide X
+      p.x += p.vx * dt;
+      for (const s of w.solids) {
+        if (rectsOverlap(p, s)) {
+          if (p.vx > 0) p.x = s.x - p.w;
+          else if (p.vx < 0) p.x = s.x + s.w;
+          p.vx = 0;
+        }
+      }
+
+      // 6. Move & Collide Y
+      const prevBottom = p.y + p.h;
+      p.y += p.vy * dt;
+      p.onGround = false;
+
+      for (const s of w.solids) {
+        if (rectsOverlap(p, s)) {
+          if (p.vy > 0) {
+            p.y = s.y - p.h;
+            p.vy = 0;
+            p.onGround = true;
+          } else if (p.vy < 0 && !s.isPlatform) {
+            p.y = s.y + s.h;
+            p.vy = 0;
+          }
+        }
+      }
+
+      // One-way collision with Crumbling Platforms
+      for (const cr of w.crumbles) {
+        if (cr.state === 'falling' || cr.state === 'respawning') continue;
+        if (p.vy >= 0 && prevBottom <= cr.y + 8 && rectsOverlap(p, cr)) {
+          p.y = cr.y - p.h;
+          p.vy = 0;
+          p.onGround = true;
+          if (cr.state === 'idle') {
+            cr.state = 'shaking';
+            cr.timer = 0.42;
+          }
+        }
+      }
+
+      // One-way collision with Moving Platforms (carries player horizontally)
+      for (const mp of w.movers) {
+        if (p.vy >= 0 && prevBottom <= mp.y + 10 && rectsOverlap(p, mp)) {
+          p.y = mp.y - p.h;
+          p.vy = 0;
+          p.onGround = true;
+          p.x += (mp.x - mp.prevX);
+        }
+      }
+
+      // Reveal fake ground if player passes through it
+      for (const fg of w.fakeGroundTiles) {
+        if (!fg.revealed && rectsOverlap(p, fg)) {
+          fg.revealed = true;
+          Sound.sfxTrap();
+          spawnParticles(fg.x + 16, fg.y + 16, '#8b5a2b', 8, 100);
+        }
+      }
+
+      // Pitfall Instant Death
+      if (p.y > WORLD_HEIGHT + 24) {
+        killPlayer();
+        return;
+      }
+
+      // 7. Update Traps & Enemies
+      // Pop-up Hidden Spikes
+      for (const sp of w.spikes) {
+        if (sp.hidden && !sp.popped) {
+          const dist = Math.hypot((p.x + p.w / 2) - (sp.x + sp.w / 2), (p.y + p.h / 2) - sp.y);
+          if (dist < 62) {
+            sp.popped = true;
+            Sound.sfxTrap();
+          }
+        }
+        if (sp.popped && sp.popProgress < 1) {
+          sp.popProgress = Math.min(1, sp.popProgress + dt * 9);
+        }
+        if (sp.popped && sp.popProgress > 0.45 && rectsOverlap(p, sp)) {
+          damagePlayer(sp.x + sp.w / 2);
+        }
+      }
+
+      // Rotating Saw Blades
+      for (const sw of w.saws) {
+        sw.angle += dt * 10;
+        sw.x = sw.baseX + Math.sin(Game.time * sw.speed) * sw.moveX;
+        sw.y = sw.baseY + Math.cos(Game.time * sw.speed) * sw.moveY;
+        const dx = (p.x + p.w / 2) - sw.x;
+        const dy = (p.y + p.h / 2) - sw.y;
+        if (Math.hypot(dx, dy) < sw.r + 9) {
+          damagePlayer(sw.x);
+        }
+      }
+
+      // Green Slimes
+      for (const sl of w.slimes) {
+        sl.x += sl.dir * sl.speed * dt;
+        if (sl.x > sl.baseX + sl.range) sl.dir = -1;
+        if (sl.x < sl.baseX - sl.range) sl.dir = 1;
+        sl.hopPhase += dt * 7;
+        if (rectsOverlap(p, sl)) {
+          damagePlayer(sl.x + sl.w / 2);
+        }
+      }
+
+      // Level 21 Devil Boss Teaser Projectiles
+      if (w.boss) {
+        const b = w.boss;
+        b.y = 5.5 * TILE + Math.sin(Game.time * 2.5) * 48;
+        if (Math.abs(p.x - b.x) < 420) {
+          b.fireTimer -= dt;
+          if (b.fireTimer <= 0) {
+            b.fireTimer = 1.65;
+            b.fireballs.push({
+              x: b.x,
+              y: b.y + 32,
+              vx: -210,
+              vy: (p.y - b.y) * 0.45,
+              r: 10
+            });
+            Sound.sfxTrap();
+          }
+        }
+        for (let i = b.fireballs.length - 1; i >= 0; i--) {
+          const fb = b.fireballs[i];
+          fb.x += fb.vx * dt;
+          fb.y += fb.vy * dt;
+          if (Math.hypot((p.x + p.w / 2) - fb.x, (p.y + p.h / 2) - fb.y) < fb.r + 9) {
+            damagePlayer(fb.x);
+            b.fireballs.splice(i, 1);
+          } else if (fb.x < b.x - 520) {
+            b.fireballs.splice(i, 1);
+          }
+        }
+      }
+
+      // 8. Collectibles, Checkpoints & Goal Portal
+      for (const c of w.coins) {
+        if (!c.collected && rectsOverlap(p, c)) {
+          c.collected = true;
+          Game.stats.coins += 1;
+          Sound.sfxCoin();
+          spawnParticles(c.x + 8, c.y + 8, '#ffd43b', 9, 130);
+          updateHUD();
+        }
+      }
+
+      for (const fc of w.fakeCoins) {
+        if (!fc.triggered && rectsOverlap(p, fc)) {
+          fc.triggered = true;
+          Sound.sfxTrap();
+          // Spawns an instant trap spike at the fake coin's location!
+          w.spikes.push({
+            x: fc.x - 4,
+            y: fc.y - 2,
+            w: 24,
+            h: 20,
+            hidden: false,
+            popped: true,
+            popProgress: 1
+          });
+          damagePlayer(fc.x + 9);
+        }
+      }
+
+      for (const gm of w.gems) {
+        if (!gm.collected && rectsOverlap(p, gm)) {
+          gm.collected = true;
+          Sound.sfxGem();
+          if (p.hp < p.maxHp) {
+            p.hp += 1;
+          } else {
+            Game.stats.coins += 3;
+          }
+          spawnParticles(gm.x + 10, gm.y + 10, '#38bdf8', 15, 170);
+          updateHUD();
+        }
+      }
+
+      for (const cp of w.checkpoints) {
+        if (!cp.active && rectsOverlap(p, cp)) {
+          cp.active = true;
+          p.spawnX = cp.x;
+          p.spawnY = cp.y + 8;
+          Sound.sfxCheckpoint();
+          spawnParticles(cp.x + 12, cp.y + 12, '#4ade80', 14, 150);
+        }
+      }
+
+      if (rectsOverlap(p, w.goal)) {
+        completeLevel();
+      }
+
+      // 9. Smooth Side-Scrolling Camera Follow
+      const viewW = canvas.width;
+      const targetCamX = p.x - viewW * 0.35;
+      const maxCamX = Math.max(0, def.widthTiles * TILE - viewW);
+      const clampedTarget = Math.max(0, Math.min(maxCamX, targetCamX));
+      Game.cameraX += (clampedTarget - Game.cameraX) * Math.min(1, dt * 8.5);
+    }
+
+    /* ==========================================================================
+       6. 16-BIT CANVAS RENDERER (PARALLAX, TILES, TRAPS, SPRITES & HUD BANNERS)
+       ========================================================================== */
+    function renderGame() {
+      const viewW = canvas.width;
+      const viewH = canvas.height;
+      ctx.imageSmoothingEnabled = false;
+
+      const themeKey = (Game.levelData && Game.levelData.theme) || 'grass';
+      const th = THEMES[themeKey];
+
+      // 1. Sky Gradient
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, viewH);
+      skyGrad.addColorStop(0, th.skyTop);
+      skyGrad.addColorStop(0.55, th.skyMid);
+      skyGrad.addColorStop(1, th.skyBot);
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, viewW, viewH);
+
+      const cam = Game.mode === 'MENU' ? Game.time * 40 : Game.cameraX;
+
+      // 2. Parallax Layer 1: Pixel Clouds
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+      for (let i = 0; i < 12; i++) {
+        const cx = ((i * 220 - cam * 0.12) % (viewW + 240) + (viewW + 240)) % (viewW + 240) - 120;
+        const cy = 36 + (i % 4) * 28;
+        ctx.fillRect(Math.round(cx), cy, 64, 16);
+        ctx.fillRect(Math.round(cx + 12), cy - 10, 40, 12);
+      }
+
+      // 3. Parallax Layer 2: Distant Purple/Dark Jagged Mountains
+      ctx.fillStyle = th.mountain;
+      const mSpan = 180;
+      const mStart = Math.floor((cam * 0.25) / mSpan) - 1;
+      const mCount = Math.ceil(viewW / mSpan) + 3;
+      for (let i = 0; i < mCount; i++) {
+        const idx = mStart + i;
+        const mx = Math.round(idx * mSpan - cam * 0.25);
+        const mh = 110 + ((Math.abs(idx * 37) % 5) * 22);
+        ctx.beginPath();
+        ctx.moveTo(mx - 20, viewH);
+        ctx.lineTo(mx + mSpan * 0.5, viewH - 64 - mh);
+        ctx.lineTo(mx + mSpan + 20, viewH);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // 4. Parallax Layer 3: Mid-ground Pixel Trees / Pillars
+      ctx.fillStyle = th.trees;
+      const tSpan = 110;
+      const tStart = Math.floor((cam * 0.5) / tSpan) - 1;
+      const tCount = Math.ceil(viewW / tSpan) + 3;
+      for (let i = 0; i < tCount; i++) {
+        const idx = tStart + i;
+        const tx = Math.round(idx * tSpan - cam * 0.5);
+        const thgt = 56 + ((Math.abs(idx * 19) % 4) * 16);
+        // Trunk & Layered Pixel Canopy
+        ctx.fillRect(tx + 18, viewH - 64 - thgt + 24, 10, thgt);
+        ctx.fillRect(tx + 4, viewH - 64 - thgt + 14, 38, 18);
+        ctx.fillRect(tx + 10, viewH - 64 - thgt, 26, 16);
+      }
+
+      // Decorative preview floor on Main Menu
+      if (Game.mode === 'MENU' || !Game.world) {
+        ctx.fillStyle = th.dirt;
+        ctx.fillRect(0, viewH - 48, viewW, 48);
+        ctx.fillStyle = th.grass;
+        ctx.fillRect(0, viewH - 56, viewW, 10);
+        return;
+      }
+
+      // Apply Camera & Screen Shake Transform
+      ctx.save();
+      let shakeX = 0;
+      let shakeY = 0;
+      if (Game.shakeTimer > 0) {
+        shakeX = (Math.random() - 0.5) * 2 * Game.shakeIntensity;
+        shakeY = (Math.random() - 0.5) * 2 * Game.shakeIntensity;
+      }
+      ctx.translate(Math.round(-Game.cameraX + shakeX), Math.round(shakeY));
+
+      const w = Game.world;
+
+      // 5. Render Pit Hazard Glow (Lava / Abyss)
+      ctx.fillStyle = th.hazardLiquid;
+      ctx.fillRect(Game.cameraX, WORLD_HEIGHT - 14, viewW, 20);
+
+      // 6. Render Solid Ground & Elevated Platforms
+      for (const s of w.solids) {
+        if (s.invisible) continue;
+        if (s.x + s.w < Game.cameraX - 40 || s.x > Game.cameraX + viewW + 40) continue;
+
+        ctx.fillStyle = th.dirt;
+        ctx.fillRect(s.x, s.y, s.w, s.h);
+        // Pixel dirt speckles
+        ctx.fillStyle = th.dirtDark;
+        ctx.fillRect(s.x + 6, s.y + 14, 6, 6);
+        ctx.fillRect(s.x + 20, s.y + 24, 6, 6);
+        // Lush Grass / Theme Top Cap
+        ctx.fillStyle = th.grass;
+        ctx.fillRect(s.x, s.y, s.w, 8);
+        ctx.fillStyle = th.grassLight;
+        ctx.fillRect(s.x, s.y, s.w, 3);
+      }
+
+      // 7. Render Fake Ground Illusion Tiles
+      for (const fg of w.fakeGroundTiles) {
+        if (fg.revealed) continue;
+        ctx.fillStyle = th.dirt;
+        ctx.fillRect(fg.x, fg.y, fg.w, fg.h);
+        ctx.fillStyle = th.grass;
+        ctx.fillRect(fg.x, fg.y, fg.w, 8);
+        ctx.fillStyle = th.grassLight;
+        ctx.fillRect(fg.x, fg.y, fg.w, 3);
+      }
+
+      // 8. Render Crumbling Wooden Bridges
+      for (const cr of w.crumbles) {
+        if (cr.state === 'respawning') continue;
+        const jx = cr.state === 'shaking' ? (Math.random() - 0.5) * 5 : 0;
+        ctx.fillStyle = '#8c4a27';
+        ctx.fillRect(Math.round(cr.x + jx), Math.round(cr.y), cr.w, cr.h);
+        ctx.fillStyle = '#c4743b';
+        ctx.fillRect(Math.round(cr.x + jx), Math.round(cr.y), cr.w, 5);
+        // Plank divisions
+        ctx.fillStyle = '#3d1d0c';
+        for (let px = 14; px < cr.w; px += 16) {
+          ctx.fillRect(Math.round(cr.x + px + jx), Math.round(cr.y), 2, cr.h);
+        }
+      }
+
+      // 9. Render Moving Platforms
+      for (const mp of w.movers) {
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(Math.round(mp.x), Math.round(mp.y), mp.w, mp.h);
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(Math.round(mp.x), Math.round(mp.y), mp.w, 4);
+      }
+
+      // 10. Render Wooden Signs + Readable Pixel Speech Bubbles
+      for (const sg of w.signs) {
+        // Wooden post & board
+        ctx.fillStyle = '#5c3317';
+        ctx.fillRect(sg.x + 13, sg.y + 12, 6, 16);
+        ctx.fillStyle = '#9c5a2b';
+        ctx.fillRect(sg.x + 4, sg.y + 2, 24, 14);
+        ctx.strokeStyle = '#3b1d0a';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(sg.x + 4, sg.y + 2, 24, 14);
+
+        // Show speech bubble when Hero is nearby
+        if (Math.abs((Game.player.x + 11) - (sg.x + 16)) < 115) {
+          ctx.font = '8px "Press Start 2P", monospace';
+          const tw = ctx.measureText(sg.text).width + 16;
+          const bx = Math.round(sg.x + 16 - tw / 2);
+          const by = Math.round(sg.y - 34);
+          ctx.fillStyle = '#1b0307';
+          ctx.fillRect(bx, by, tw, 24);
+          ctx.strokeStyle = '#ffd43b';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(bx, by, tw, 24);
+          ctx.fillStyle = '#fff5e4';
+          ctx.textAlign = 'center';
+          ctx.fillText(sg.text, sg.x + 16, by + 15);
+          ctx.textAlign = 'left';
+        }
+      }
+
+      // 11. Render Checkpoints (Green Flag waves when activated!)
+      for (const cp of w.checkpoints) {
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillRect(cp.x + 4, cp.y, 4, cp.h);
+        const wave = cp.active ? Math.sin(Game.time * 10) * 3 : 0;
+        ctx.fillStyle = cp.active ? '#22c55e' : '#64748b';
+        ctx.beginPath();
+        ctx.moveTo(cp.x + 8, cp.y + 2);
+        ctx.lineTo(cp.x + 28, cp.y + 10 + wave);
+        ctx.lineTo(cp.x + 8, cp.y + 18);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // 12. Render End-of-Level Swirling Devil/Victory Portal & Flag
+      const gl = w.goal;
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(gl.x + 16, gl.y, 4, gl.h);
+      // Swirling Portal Core
+      const pulse = Math.sin(Game.time * 6) * 4;
+      ctx.fillStyle = '#7e22ce';
+      ctx.beginPath();
+      ctx.ellipse(gl.x + 18, gl.y + 42, 18 + pulse * 0.5, 32 + pulse, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.ellipse(gl.x + 18, gl.y + 42, 10, 20, Game.time * 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fde047';
+      ctx.fillRect(gl.x + 14, gl.y + 38, 8, 8);
+
+      // 13. Render Golden Coins & Fake Coins
+      const coinSquash = Math.abs(Math.cos(Game.time * 6));
+      for (const c of w.coins) {
+        if (c.collected) continue;
+        const bob = Math.sin(Game.time * 4 + c.bobOffset) * 3;
+        const cw = Math.max(4, Math.round(14 * coinSquash));
+        const cx = Math.round(c.x + 8 - cw / 2);
+        const cy = Math.round(c.y + bob);
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(cx, cy, cw, 16);
+        ctx.fillStyle = '#fef08a';
+        ctx.fillRect(cx + 1, cy + 2, Math.max(2, cw - 3), 12);
+      }
+
+      for (const fc of w.fakeCoins) {
+        if (fc.triggered) continue;
+        const cw = Math.max(4, Math.round(14 * coinSquash));
+        const cx = Math.round(fc.x + 9 - cw / 2);
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(cx, fc.y, cw, 16);
+        ctx.fillStyle = '#fde047';
+        ctx.fillRect(cx + 1, fc.y + 2, Math.max(2, cw - 3), 12);
+      }
+
+      // 14. Render Sparkling Blue Diamond Gems
+      for (const gm of w.gems) {
+        if (gm.collected) continue;
+        const bob = Math.sin(Game.time * 5) * 4;
+        const gx = gm.x + 10;
+        const gy = gm.y + 10 + bob;
+        ctx.fillStyle = '#0284c7';
+        ctx.beginPath();
+        ctx.moveTo(gx, gy - 11);
+        ctx.lineTo(gx + 10, gy);
+        ctx.lineTo(gx, gy + 11);
+        ctx.lineTo(gx - 10, gy);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#7dd3fc';
+        ctx.fillRect(gx - 4, gy - 4, 5, 5);
+      }
+
+      // 15. Render Spikes (Static & Pop-up Hidden Spikes)
+      for (const sp of w.spikes) {
+        if (!sp.popped) continue;
+        const h = Math.round(sp.h * sp.popProgress);
+        const sy = sp.y + sp.h - h;
+        ctx.fillStyle = '#cbd5e1';
+        const teeth = 3;
+        const tw = sp.w / teeth;
+        for (let t = 0; t < teeth; t++) {
+          ctx.beginPath();
+          ctx.moveTo(sp.x + t * tw, sy + h);
+          ctx.lineTo(sp.x + t * tw + tw / 2, sy);
+          ctx.lineTo(sp.x + (t + 1) * tw, sy + h);
+          ctx.closePath();
+          ctx.fill();
+          // Crimson blood tip
+          ctx.fillStyle = '#ef4444';
+          ctx.fillRect(sp.x + t * tw + tw / 2 - 2, sy, 4, 4);
+          ctx.fillStyle = '#cbd5e1';
+        }
+      }
+
+      // 16. Render Rotating Saw Blades
+      for (const sw of w.saws) {
+        ctx.save();
+        ctx.translate(Math.round(sw.x), Math.round(sw.y));
+        ctx.rotate(sw.angle);
+        ctx.fillStyle = '#94a3b8';
+        for (let t = 0; t < 8; t++) {
+          ctx.rotate(Math.PI / 4);
+          ctx.fillRect(-4, -sw.r - 4, 8, (sw.r + 4) * 2);
+        }
+        ctx.fillStyle = '#475569';
+        ctx.beginPath();
+        ctx.arc(0, 0, sw.r - 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(0, 0, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // 17. Render Green Hopping Slimes
+      for (const sl of w.slimes) {
+        const squash = Math.sin(sl.hopPhase) * 3;
+        const sx = Math.round(sl.x - squash * 0.5);
+        const sy = Math.round(sl.y + squash);
+        const sw = Math.round(sl.w + squash);
+        const sh = Math.round(sl.h - squash);
+        ctx.fillStyle = '#16a34a';
+        ctx.fillRect(sx, sy + 4, sw, sh - 4);
+        ctx.fillStyle = '#4ade80';
+        ctx.fillRect(sx + 3, sy, sw - 6, sh - 6);
+        // Angry Pixel Eyes
+        ctx.fillStyle = '#052e16';
+        const eyeOff = sl.dir > 0 ? 12 : 4;
+        ctx.fillRect(sx + eyeOff, sy + 7, 3, 4);
+        ctx.fillRect(sx + eyeOff + 7, sy + 7, 3, 4);
+      }
+
+      // 18. Render Level 21 Devil Boss Teaser
+      if (w.boss) {
+        const b = w.boss;
+        ctx.fillStyle = '#991b1b';
+        ctx.fillRect(b.x, b.y + 12, b.w, b.h - 12);
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(b.x + 8, b.y + 18, b.w - 16, b.h - 24);
+        // Golden Devil Horns
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillRect(b.x + 6, b.y, 10, 14);
+        ctx.fillRect(b.x + b.w - 16, b.y, 10, 14);
+        // Glowing Eyes
+        ctx.fillStyle = '#fef08a';
+        ctx.fillRect(b.x + 14, b.y + 26, 10, 8);
+        ctx.fillRect(b.x + 36, b.y + 26, 10, 8);
+        // Fireballs
+        for (const fb of b.fireballs) {
+          ctx.fillStyle = '#ff5500';
+          ctx.beginPath();
+          ctx.arc(fb.x, fb.y, fb.r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#fde047';
+          ctx.beginPath();
+          ctx.arc(fb.x, fb.y, fb.r * 0.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // 19. Render Hero Character
+      const p = Game.player;
+      let animState = 'idle';
+      if (p.dead) animState = 'dead';
+      else if (!p.onGround) animState = 'jump';
+      else if (Math.abs(p.vx) > 15) animState = 'run';
+
+      drawHeroSprite(ctx, p.x - 3, p.y - 4, p.w + 6, p.h + 4, animState, p.facing, Game.time, p.invulnTimer > 0);
+
+      // 20. Render Particles
+      for (const pt of w.particles) {
+        ctx.fillStyle = pt.color;
+        ctx.fillRect(Math.round(pt.x), Math.round(pt.y), pt.size, pt.size);
+      }
+
+      ctx.restore();
+
+      // 21. Center Level Title Banner ("LEVEL X / LEVEL NAME")
+      if (Game.bannerTimer > 0 && Game.levelData) {
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'rgba(20, 2, 5, 0.75)';
+        ctx.fillRect(viewW * 0.15, viewH * 0.34, viewW * 0.7, 86);
+        ctx.strokeStyle = '#f5b921';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(viewW * 0.15, viewH * 0.34, viewW * 0.7, 86);
+
+        ctx.font = '20px "Press Start 2P", monospace';
+        ctx.fillStyle = '#ffd43b';
+        ctx.fillText(`LEVEL ${Game.levelData.id}`, viewW / 2, viewH * 0.34 + 36);
+
+        ctx.font = '13px "Press Start 2P", monospace';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(Game.levelData.name.toUpperCase(), viewW / 2, viewH * 0.34 + 66);
+        ctx.restore();
+      }
+
+      // 22. Center "YOU DIED!" Banner
+      if (Game.deathBannerTimer > 0) {
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.font = '28px "Press Start 2P", monospace';
+        ctx.fillStyle = '#180205';
+        ctx.fillText('YOU DIED!', viewW / 2 + 4, viewH * 0.46 + 4);
+        ctx.fillStyle = '#ff2a3c';
+        ctx.fillText('YOU DIED!', viewW / 2, viewH * 0.46);
+        ctx.restore();
+      }
+    }
+
+    /* ==========================================================================
+       7. UI, HUD, MODAL & INPUT WIRING
+       ========================================================================== */
+    function resizeCanvas() {
+      const aspect = window.innerWidth / Math.max(1, window.innerHeight);
+      canvas.height = WORLD_HEIGHT;
+      canvas.width = Math.max(640, Math.round(WORLD_HEIGHT * aspect));
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function showScreen(screenName) {
+      const mainMenu = document.getElementById('main-menu');
+      const hudLayer = document.getElementById('hud-layer');
+      if (screenName === 'MENU') {
+        mainMenu.classList.remove('hidden');
+        hudLayer.classList.add('hidden');
+        closeAllModals();
+        updateMenuFooterUI();
+      } else {
+        mainMenu.classList.add('hidden');
+        hudLayer.classList.remove('hidden');
+      }
+    }
+
+    function openModal(modalId) {
+      const backdrop = document.getElementById('modal-backdrop');
+      backdrop.classList.remove('hidden');
+      document.querySelectorAll('.modal-box').forEach(box => box.classList.add('hidden'));
+      document.getElementById(modalId).classList.remove('hidden');
+    }
+
+    function closeAllModals() {
+      document.getElementById('modal-backdrop').classList.add('hidden');
+      document.querySelectorAll('.modal-box').forEach(box => box.classList.add('hidden'));
+    }
+
+    function updateMenuFooterUI() {
+      const statsEl = document.getElementById('menu-stats-text');
+      if (statsEl) {
+        statsEl.innerHTML = `LEVEL: ${SaveData.unlockedLevel}/21 &nbsp;DEATHS: ${SaveData.totalDeaths}`;
+      }
+      const mBtn = document.getElementById('toggle-music');
+      const sBtn = document.getElementById('toggle-sfx');
+      if (mBtn) {
+        mBtn.textContent = SaveData.settings.musicOn ? '🎵 ON' : '🎵 OFF';
+        mBtn.classList.toggle('off', !SaveData.settings.musicOn);
+      }
+      if (sBtn) {
+        sBtn.textContent = SaveData.settings.sfxOn ? '🔊 ON' : '🔇 OFF';
+        sBtn.classList.toggle('off', !SaveData.settings.sfxOn);
+      }
+      document.documentElement.style.setProperty('--touch-size', `${SaveData.settings.ctrlSize}px`);
+    }
+
+    function updateHUD() {
+      const heartsEl = document.getElementById('hud-hearts');
+      if (heartsEl) {
+        let html = '';
+        for (let i = 0; i < Game.player.maxHp; i++) {
+          html += `<span style="color:${i < Game.player.hp ? '#ff2a3c' : '#4a1c22'}; font-size:15px;">♥</span>`;
+        }
+        heartsEl.innerHTML = html;
+      }
+      document.getElementById('hud-coins').textContent = `🪙 ${Game.stats.coins} / ${Game.stats.coinTarget}`;
+      document.getElementById('hud-deaths').textContent = `DEATHS: ${SaveData.totalDeaths}`;
+      if (Game.levelData) {
+        document.getElementById('hud-level').textContent = `LVL ${Game.levelData.id}/21`;
+      }
+    }
+
+    function buildLevelGrid() {
+      const grid = document.getElementById('level-grid-container');
+      grid.innerHTML = '';
+      LEVELS.forEach((lvl, idx) => {
+        const unlocked = lvl.id <= SaveData.unlockedLevel;
+        const stars = SaveData.levelStars[lvl.id] || 0;
+        const card = document.createElement('button');
+        card.className = 'level-card' + (unlocked ? '' : ' locked');
+
+        if (unlocked) {
+          card.innerHTML = `
+            <div class="level-card-name">
+              <span style="color:#ffd43b;">${lvl.id}</span> - ${lvl.name.toUpperCase()}<br>
+              <span style="color:#d4b2b7; font-size:8px;">COINS: ${lvl.coinTarget}</span>
+            </div>
+            <div class="level-card-stars">${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}</div>
+          `;
+          card.addEventListener('click', () => {
+            Sound.unlock();
+            closeAllModals();
+            loadLevel(idx);
+          });
+        } else {
+          card.innerHTML = `
+            <div class="level-card-name">${lvl.id} - LOCKED</div>
+            <div class="level-card-stars" style="color:#6e6366;">🔒</div>
+          `;
+        }
+        grid.appendChild(card);
+      });
+    }
+
+    // Main Menu Button Event Listeners
+    document.getElementById('menu-play').addEventListener('click', () => {
+      Sound.unlock();
+      loadLevel(SaveData.unlockedLevel - 1);
+    });
+
+    document.getElementById('menu-new').addEventListener('click', () => {
+      Sound.unlock();
+      document.getElementById('confirm-title').textContent = 'START NEW GAME?';
+      document.getElementById('confirm-msg').textContent = 'This will reset your unlocked levels and death counter back to Level 1.';
+      document.getElementById('confirm-yes').onclick = () => {
+        SaveData.unlockedLevel = 1;
+        SaveData.totalDeaths = 0;
+        SaveData.totalCoins = 0;
+        SaveData.levelStars = {};
+        writeSave();
+        closeAllModals();
+        loadLevel(0);
+      };
+      openModal('modal-confirm');
+    });
+
+    document.getElementById('menu-levels').addEventListener('click', () => {
+      Sound.unlock();
+      buildLevelGrid();
+      openModal('modal-levels');
+    });
+
+    document.getElementById('menu-shop').addEventListener('click', () => {
+      Sound.unlock();
+      openModal('modal-shop');
+    });
+
+    document.getElementById('menu-options').addEventListener('click', () => {
+      Sound.unlock();
+      openModal('modal-options');
+    });
+
+    document.getElementById('footer-settings').addEventListener('click', () => {
+      Sound.unlock();
+      openModal('modal-options');
+    });
+
+    document.getElementById('menu-quit').addEventListener('click', () => {
+      Sound.unlock();
+      document.getElementById('confirm-title').textContent = 'EXIT TRAP DEVIL?';
+      document.getElementById('confirm-msg').textContent = 'Your progress is auto-saved! Thanks for playing .';
+      document.getElementById('confirm-yes').onclick = () => {
+        closeAllModals();
+      };
+      openModal('modal-confirm');
+    });
+
+    // Audio Toggles & Options Sliders
+    document.getElementById('toggle-music').addEventListener('click', () => {
+      Sound.unlock();
+      SaveData.settings.musicOn = !SaveData.settings.musicOn;
+      writeSave();
+    });
+
+    document.getElementById('toggle-sfx').addEventListener('click', () => {
+      Sound.unlock();
+      SaveData.settings.sfxOn = !SaveData.settings.sfxOn;
+      writeSave();
+    });
+
+    const optMusic = document.getElementById('opt-music-vol');
+    const optSfx = document.getElementById('opt-sfx-vol');
+    const optCtrl = document.getElementById('opt-ctrl-size');
+
+    optMusic.value = Math.round(SaveData.settings.musicVol * 100);
+    optSfx.value = Math.round(SaveData.settings.sfxVol * 100);
+    optCtrl.value = SaveData.settings.ctrlSize;
+
+    optMusic.addEventListener('input', e => {
+      SaveData.settings.musicVol = Number(e.target.value) / 100;
+      writeSave();
+    });
+    optSfx.addEventListener('input', e => {
+      SaveData.settings.sfxVol = Number(e.target.value) / 100;
+      writeSave();
+    });
+    optCtrl.addEventListener('input', e => {
+      SaveData.settings.ctrlSize = Number(e.target.value);
+      writeSave();
+    });
+
+    // Modal Close Buttons
+    document.querySelectorAll('.close-modal').forEach(btn => {
+      btn.addEventListener('click', () => {
+        closeAllModals();
+        if (Game.mode === 'PAUSED') Game.mode = 'PLAYING';
+      });
+    });
+
+    // Pause Menu Buttons
+    document.getElementById('btn-pause').addEventListener('click', () => {
+      if (Game.mode === 'PLAYING') {
+        Game.mode = 'PAUSED';
+        openModal('modal-pause');
+      }
+    });
+
+    document.getElementById('pause-resume').addEventListener('click', () => {
+      closeAllModals();
+      Game.mode = 'PLAYING';
+    });
+
+    document.getElementById('pause-restart').addEventListener('click', () => {
+      closeAllModals();
+      loadLevel(Game.levelIndex);
+    });
+
+    document.getElementById('pause-options').addEventListener('click', () => {
+      openModal('modal-options');
+    });
+
+    document.getElementById('pause-menu').addEventListener('click', () => {
+      Game.mode = 'MENU';
+      showScreen('MENU');
+    });
+
+    // Level Complete Modal Buttons
+    document.getElementById('complete-next').addEventListener('click', () => {
+      closeAllModals();
+      if (Game.levelIndex + 1 < LEVELS.length) {
+        loadLevel(Game.levelIndex + 1);
+      } else {
+        Game.mode = 'MENU';
+        showScreen('MENU');
+      }
+    });
+
+    document.getElementById('complete-replay').addEventListener('click', () => {
+      closeAllModals();
+      loadLevel(Game.levelIndex);
+    });
+
+    document.getElementById('complete-menu').addEventListener('click', () => {
+      Game.mode = 'MENU';
+      showScreen('MENU');
+    });
+
+    // Keyboard Controls
+    window.addEventListener('keydown', e => {
+      Sound.unlock();
+      if (e.code === 'ArrowLeft' || e.code === 'KeyA') Input.left = true;
+      if (e.code === 'ArrowRight' || e.code === 'KeyD') Input.right = true;
+      if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+        if (!Input.jumpHeld) Input.jumpPressed = true;
+        Input.jumpHeld = true;
+      }
+      if ((e.code === 'Escape' || e.code === 'KeyP') && Game.mode === 'PLAYING') {
+        Game.mode = 'PAUSED';
+        openModal('modal-pause');
+      }
+      if (e.code === 'KeyR' && Game.mode === 'PLAYING') {
+        loadLevel(Game.levelIndex);
+      }
+    });
+
+    window.addEventListener('keyup', e => {
+      if (e.code === 'ArrowLeft' || e.code === 'KeyA') Input.left = false;
+      if (e.code === 'ArrowRight' || e.code === 'KeyD') Input.right = false;
+      if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+        Input.jumpHeld = false;
+      }
+    });
+
+    // Multi-Touch Mobile Controls (Supports finger sliding between < and >)
+    const btnLeft = document.getElementById('btn-left');
+    const btnRight = document.getElementById('btn-right');
+    const btnJump = document.getElementById('btn-jump');
+    const dpadZone = document.getElementById('dpad-zone');
+
+    function handleDpadTouches(e) {
+      e.preventDefault();
+      Sound.unlock();
+      let leftActive = false;
+      let rightActive = false;
+      const leftRect = btnLeft.getBoundingClientRect();
+      const rightRect = btnRight.getBoundingClientRect();
+
+      for (let i = 0; i < e.touches.length; i++) {
+        const t = e.touches[i];
+        if (
+          t.clientX >= leftRect.left - 12 &&
+          t.clientX <= leftRect.right + 8 &&
+          t.clientY >= leftRect.top - 16 &&
+          t.clientY <= leftRect.bottom + 16
+        ) {
+          leftActive = true;
+        }
+        if (
+          t.clientX >= rightRect.left - 8 &&
+          t.clientX <= rightRect.right + 12 &&
+          t.clientY >= rightRect.top - 16 &&
+          t.clientY <= rightRect.bottom + 16
+        ) {
+          rightActive = true;
+        }
+      }
+      Input.left = leftActive;
+      Input.right = rightActive;
+      btnLeft.classList.toggle('pressed', leftActive);
+      btnRight.classList.toggle('pressed', rightActive);
+    }
+
+    dpadZone.addEventListener('touchstart', handleDpadTouches, { passive: false });
+    dpadZone.addEventListener('touchmove', handleDpadTouches, { passive: false });
+    dpadZone.addEventListener('touchend', handleDpadTouches, { passive: false });
+    dpadZone.addEventListener('touchcancel', handleDpadTouches, { passive: false });
+
+    // Mouse fallback on touch buttons for desktop testing
+    btnLeft.addEventListener('mousedown', () => { Input.left = true; btnLeft.classList.add('pressed'); });
+    btnRight.addEventListener('mousedown', () => { Input.right = true; btnRight.classList.add('pressed'); });
+    window.addEventListener('mouseup', () => {
+      Input.left = false;
+      Input.right = false;
+      Input.jumpHeld = false;
+      btnLeft.classList.remove('pressed');
+      btnRight.classList.remove('pressed');
+      btnJump.classList.remove('pressed');
+    });
+
+    btnJump.addEventListener('touchstart', e => {
+      e.preventDefault();
+      Sound.unlock();
+      if (!Input.jumpHeld) Input.jumpPressed = true;
+      Input.jumpHeld = true;
+      btnJump.classList.add('pressed');
+    }, { passive: false });
+
+    btnJump.addEventListener('touchend', e => {
+      e.preventDefault();
+      Input.jumpHeld = false;
+      btnJump.classList.remove('pressed');
+    }, { passive: false });
+
+    btnJump.addEventListener('mousedown', () => {
+      Sound.unlock();
+      if (!Input.jumpHeld) Input.jumpPressed = true;
+      Input.jumpHeld = true;
+      btnJump.classList.add('pressed');
+    });
+
+    /* ==========================================================================
+       8. 60 FPS MAIN LOOP
+       ========================================================================== */
+    function mainLoop(timestamp) {
+      if (!Game.lastTimestamp) Game.lastTimestamp = timestamp;
+      const dt = Math.min(0.05, (timestamp - Game.lastTimestamp) / 1000);
+      Game.lastTimestamp = timestamp;
+
+      updateGame(dt);
+      renderGame();
+
+      if (Game.mode === 'MENU') {
+        renderMenuHeroPreview(Game.time);
+      }
+
+      requestAnimationFrame(mainLoop);
+    }
+
+    window.onload = function () {
+      updateMenuFooterUI();
+      showScreen('MENU');
+      requestAnimationFrame(mainLoop);
+    };
+  </script>
+</body>
+</html>
